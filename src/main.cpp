@@ -1,7 +1,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <assert.h>
 #include <iostream>
+
+#include "io.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -36,6 +39,10 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+
+    // Pass from command line
+    std::string rs = readFromFile("./src/shaders/simple.vert");
+    std::cout << rs << std::endl;
 
     // render loop
     // -----------

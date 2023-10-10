@@ -14,11 +14,15 @@ project(crunch VERSION 1.0)
 
 add_executable(crunch
     src/main.cpp
-    src/glad.c
+    src/io.cpp
 )
+
 target_include_directories(crunch PRIVATE include)
 
 find_package(OpenGL REQUIRED)
 
 add_subdirectory(libs/glfw)
 target_link_libraries(crunch glfw)
+
+add_subdirectory(libs/glad)
+target_link_libraries(crunch glad)
