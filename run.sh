@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./build/cruncht s
+./build/crunch
