@@ -2,9 +2,12 @@
 #include <GLFW/glfw3.h>
 
 #include <assert.h>
+#include <string>
+#include <unordered_map>
 #include <iostream>
 
-#include "io.h"
+#include "loader.h"
+#include "state.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
@@ -12,6 +15,9 @@ void processInput(GLFWwindow *window);
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
+
+using std::unordered_map;
+using std::string;
 
 int main()
 {
@@ -40,6 +46,14 @@ int main()
         return -1;
     }
 
+    unordered_map<string, string> vertexSrc;
+    vertexSrc.insert({"simple", "./src/shaders/simple.vert"});
+
+    unordered_map<string, string> fragmentSrc;
+    fragmentSrc.insert({"simple", "./src/shaders/simple.frag"});
+
+    auto vertexShaders = compileShaders(vertexSrc, GL_VERTEX_SHADER);
+    auto fragmentShaders = compileShaders(fragmentSrc, GL_FRAGMENT_SHADER);
 
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -85,7 +99,7 @@ int main()
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if(!success)
     {
-        glGetShaderInfoLog(shaderProgram, 512, NULL, infoLog);
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
 
