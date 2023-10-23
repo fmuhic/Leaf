@@ -8,7 +8,7 @@
 
 #define SHADER_PROGRAM_COUNT 100
 
-enum class ShaderProgram
+enum class ShaderProgram: uint32
 {
     REGULAR = 0
 };

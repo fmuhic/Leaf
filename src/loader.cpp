@@ -9,6 +9,8 @@
 
 #include "loader.h"
 #include "types.h"
+#include "state.h"
+#include "helpers.h"
 
 using std::string;
 using std::cout;
@@ -24,7 +26,10 @@ string readFromFile(const char *path) {
     return buffer.str();
 }
 
-unordered_map<string, uint32> compileShaders(unordered_map<string, string> shaderInfo, uint32 type) {
+unordered_map<string, uint32> compileShaders(
+    unordered_map<string, string> shaderInfo,
+    uint32 type
+) {
     unordered_map<string, uint32> result;
     GLint success;
     GLchar infoLog[512];
@@ -48,6 +53,30 @@ unordered_map<string, uint32> compileShaders(unordered_map<string, string> shade
         }
         result.insert({ it.first, shader});
     }
+
+    return result;
+}
+
+unordered_map<uint32, uint32> createShaderPrograms(
+    unordered_map<string, uint32> vertexShaders,
+    unordered_map<string, uint32> fragmentShaders
+) {
+    unordered_map<uint32, uint32> result;
+    uint32 shaderProgram;
+    shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShaders["simple"]);
+    glAttachShader(shaderProgram, fragmentShaders["simple"]);
+    glLinkProgram(shaderProgram);
+
+    GLint success;
+    GLchar infoLog[512];
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if(!success)
+    {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED::REGULAR_PROGRAM\n" << infoLog << std::endl;
+    }
+    result.insert({ toIndex(ShaderProgram::REGULAR), shaderProgram });
 
     return result;
 }

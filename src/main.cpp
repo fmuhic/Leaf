@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <iostream>
 
+#include "helpers.h"
 #include "loader.h"
 #include "state.h"
 
@@ -55,59 +56,16 @@ int main()
     auto vertexShaders = compileShaders(vertexSrc, GL_VERTEX_SHADER);
     auto fragmentShaders = compileShaders(fragmentSrc, GL_FRAGMENT_SHADER);
 
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
+    auto shaderPrograms = createShaderPrograms(vertexShaders, fragmentShaders);
 
-    // Pass from command line, and properly read file
-    std::string vs = readFromFile("./src/shaders/simple.vert");
-    const char *s = vs.c_str();
-    std::cout << vs << std::endl;
-
-    glShaderSource(vertexShader, 1, &s, NULL);
-    glCompileShader(vertexShader);
-
-    GLint success;
-    GLchar infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::VERTEX_SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+    for (auto &it: vertexShaders) {
+        glDeleteShader(it.second);
+    }
+    for (auto &it: fragmentShaders) {
+        glDeleteShader(it.second);
     }
 
-    std::string fs = readFromFile("./src/shaders/simple.frag");
-    std::cout << fs << std::endl;
-    const char *f = fs.c_str();
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &f, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::FRAGMENT_SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success)
-    {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-
-        float vertices[] = {
+    float vertices[] = {
         -0.5f, -0.5f, 0.0f, // left  
          0.5f, -0.5f, 0.0f, // right 
          0.0f,  0.5f, 0.0f  // top   
@@ -152,7 +110,7 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw our first triangle
-        glUseProgram(shaderProgram);
+        glUseProgram(shaderPrograms[toIndex(ShaderProgram::REGULAR)]);
         glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
         glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindVertexArray(0); // no need to unbind it every time 
@@ -165,7 +123,7 @@ int main()
 
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(shaderPrograms[toIndex(ShaderProgram::REGULAR)]);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
