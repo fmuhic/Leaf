@@ -74,10 +74,10 @@ int main()
 
     createVertexObjects(&renderer);
 
-    // int windowWidth_ = 1920;
-    // int windowHeight_ = 1080;
-    // float aspectRatio = 16.0f / 9.0f;
-    // glViewport(0, 0, (int) ((float) windowHeight_ * aspectRatio), windowHeight_);
+    int windowWidth_ = 1920;
+    int windowHeight_ = 1080;
+    float aspectRatio = 16.0f / 9.0f;
+    glViewport(0, 0, (int) ((float) windowHeight_ * aspectRatio), windowHeight_);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -94,11 +94,11 @@ int main()
 
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 position = glm::vec3(1.5f, 1.5f, 0.0f);
-        // glm::mat4 camera = glm::lookAt(
-        //     glm::vec3(position.x, position.y, 0.05f),
-        //     glm::vec3(position.x, position.y, 0.0f),
-        //     glm::vec3(0.0f, 1.0f, 0.0f)
-        // );
+        glm::mat4 camera = glm::lookAt(
+            glm::vec3(position.x, position.y, 0.05f),
+            glm::vec3(position.x, position.y, 0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)
+        );
 
         float metersToPixels = 100;
 
@@ -107,16 +107,17 @@ int main()
         // model = glm::scale(model, glm::vec3(1.0f, 1.0f, 0.0f));
         // model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0.0f));
         model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));
 
         GLint modelMatrix = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelMatrix, 1, GL_FALSE, glm::value_ptr(model));
 
-        // GLint viewMatrix = glGetUniformLocation(shaderProgram, "view");
-        // glUniformMatrix4fv(viewMatrix, 1, GL_FALSE, glm::value_ptr(camera * metersToPixels));
-        //
-        // glm::mat4 projection = glm::ortho(-960.0f, 960.0f, -540.0f, 540.0f, -10.0f, 10.0f);
-        // GLint projectionMatrix = glGetUniformLocation(shaderProgram, "projection");
-        // glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE, glm::value_ptr(projection));
+        GLint viewMatrix = glGetUniformLocation(shaderProgram, "view");
+        glUniformMatrix4fv(viewMatrix, 1, GL_FALSE, glm::value_ptr(camera * metersToPixels));
+
+        glm::mat4 projection = glm::ortho(-960.0f, 960.0f, -540.0f, 540.0f, -10.0f, 10.0f);
+        GLint projectionMatrix = glGetUniformLocation(shaderProgram, "projection");
+        glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE, glm::value_ptr(projection));
 
 
 
