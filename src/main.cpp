@@ -19,8 +19,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 // settings
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 1280;
+const unsigned int SCR_HEIGHT = 720;
 
 using std::unordered_map;
 using std::string;
@@ -74,8 +74,8 @@ int main()
 
     createVertexObjects(&renderer);
 
-    int windowWidth_ = 1920;
-    int windowHeight_ = 1080;
+    int windowWidth_ = 1280;
+    int windowHeight_ = 720;
     float aspectRatio = 16.0f / 9.0f;
     glViewport(0, 0, (int) ((float) windowHeight_ * aspectRatio), windowHeight_);
 
@@ -107,7 +107,7 @@ int main()
         // model = glm::scale(model, glm::vec3(1.0f, 1.0f, 0.0f));
         // model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0.0f));
         model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));
+        model = glm::scale(model, glm::vec3(300.0f, 300.0f, 1.0f));
 
         GLint modelMatrix = glGetUniformLocation(shaderProgram, "model");
         glUniformMatrix4fv(modelMatrix, 1, GL_FALSE, glm::value_ptr(model));
