@@ -1,11 +1,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/mat4x4.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <assert.h>
 #include <string>
 #include <unordered_map>
 #include <iostream>
 
+#include "glm/ext/matrix_float4x4.hpp"
 #include "helpers.h"
 #include "loader.h"
 #include "state.h"
@@ -56,7 +61,9 @@ int main()
     auto vertexShaders = compileShaders(vertexSrc, GL_VERTEX_SHADER);
     auto fragmentShaders = compileShaders(fragmentSrc, GL_FRAGMENT_SHADER);
 
-    auto shaderPrograms = createShaderPrograms(vertexShaders, fragmentShaders);
+    Renderer renderer = {};
+
+    createShaderPrograms(&renderer, vertexShaders, fragmentShaders);
 
     for (auto &it: vertexShaders) {
         glDeleteShader(it.second);
@@ -65,43 +72,15 @@ int main()
         glDeleteShader(it.second);
     }
 
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
-    }; 
+    createVertexObjects(&renderer);
 
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
+    // int windowWidth_ = 1920;
+    // int windowHeight_ = 1080;
+    // float aspectRatio = 16.0f / 9.0f;
+    // glViewport(0, 0, (int) ((float) windowHeight_ * aspectRatio), windowHeight_);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
-
-
-
-
-
-
-
-    // render loop
-    // -----------
     while (!glfwWindowShouldClose(window))
     {
-                // input
-        // -----
         processInput(window);
 
         // render
@@ -110,9 +89,44 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
 
         // draw our first triangle
-        glUseProgram(shaderPrograms[toIndex(ShaderProgram::REGULAR)]);
-        glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        uint32 shaderProgram = renderer.shaderPrograms[toIndex(ShaderProgram::REGULAR)];
+        glUseProgram(shaderProgram);
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec3 position = glm::vec3(1.5f, 1.5f, 0.0f);
+        // glm::mat4 camera = glm::lookAt(
+        //     glm::vec3(position.x, position.y, 0.05f),
+        //     glm::vec3(position.x, position.y, 0.0f),
+        //     glm::vec3(0.0f, 1.0f, 0.0f)
+        // );
+
+        float metersToPixels = 100;
+
+        // model = glm::translate(model, position * metersToPixels);
+        // model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+        // model = glm::scale(model, glm::vec3(1.0f, 1.0f, 0.0f));
+        // model = glm::translate(model, glm::vec3(0.5f, -0.5f, 0.0f));
+        model = glm::rotate(model, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        GLint modelMatrix = glGetUniformLocation(shaderProgram, "model");
+        glUniformMatrix4fv(modelMatrix, 1, GL_FALSE, glm::value_ptr(model));
+
+        // GLint viewMatrix = glGetUniformLocation(shaderProgram, "view");
+        // glUniformMatrix4fv(viewMatrix, 1, GL_FALSE, glm::value_ptr(camera * metersToPixels));
+        //
+        // glm::mat4 projection = glm::ortho(-960.0f, 960.0f, -540.0f, 540.0f, -10.0f, 10.0f);
+        // GLint projectionMatrix = glGetUniformLocation(shaderProgram, "projection");
+        // glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE, glm::value_ptr(projection));
+
+
+
+
+
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo[toIndex(EBO::QUAD)]);
+        glBindVertexArray(renderer.vao[toIndex(VAO::QUAD)]); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
         // glBindVertexArray(0); // no need to unbind it every time 
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -121,9 +135,10 @@ int main()
         glfwPollEvents();
     }
 
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteProgram(shaderPrograms[toIndex(ShaderProgram::REGULAR)]);
+    glDeleteVertexArrays(1, &renderer.vao[toIndex(VAO::QUAD)]);
+    glDeleteBuffers(1, &renderer.vbo[toIndex(VBO::QUAD)]);
+    glDeleteBuffers(1, &renderer.ebo[toIndex(EBO::QUAD)]);
+    glDeleteProgram(renderer.shaderPrograms[toIndex(ShaderProgram::REGULAR)]);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------

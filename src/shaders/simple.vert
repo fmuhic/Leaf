@@ -1,7 +1,9 @@
 #version 420 core
 layout (location = 0) in vec3 position;
 
+uniform mat4 model;
+
 void main()
 {
-    gl_Position = vec4(position.x, position.y, position.z, 1.0);
+    gl_Position = model * vec4(position.x, position.y, position.z, 1.0);
 }

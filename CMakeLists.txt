@@ -25,3 +25,6 @@ target_link_libraries(crunch glfw)
 
 add_subdirectory(libs/glad)
 target_link_libraries(crunch glad)
+
+add_subdirectory(libs/glm)
+target_link_libraries(crunch glm)
