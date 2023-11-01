@@ -3,6 +3,6 @@
 #include "types.h"
 
 template <typename T>
-uint32 toIndex(T value) {
-    return (uint32) value;
+ui32 toIndex(T value) {
+    return (ui32) value;
 }
