@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "state.h"
 
 struct VideoEntity {
     f32 *vertices;
@@ -11,11 +12,14 @@ struct VideoEntity {
     ui32 ebo;
 };
 
-struct Renderer
-{
+struct Renderer {
     VideoEntity quad;
+    f32 screenWidth;
+    f32 screenHeight;
+    ui32 metersToPixels;
 };
 
-void initRenderer(Renderer *r);
+Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels);
+void setupScene(Renderer *r);
 void rendererCleanup(Renderer *r);
-void drawFrame(Renderer *r);
+void drawFrame(Renderer *r, Camera *c);

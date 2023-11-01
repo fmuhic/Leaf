@@ -65,7 +65,6 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
     };
     quad->shaderProgram = program;
 
-
     ui32 VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -91,7 +90,12 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
     quad->ebo = EBO;
 }
 
-void initRenderer(Renderer *r) {
+Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels) {
+    Renderer *r = new Renderer {};
+    r->screenWidth = screenWidth;
+    r->screenHeight = screenHeight;
+    r->metersToPixels = metersToPixels;
+
     ui32 quadVertex = compileShader("./src/shaders/simple.vert", GL_VERTEX_SHADER);
     ui32 quadFragment = compileShader("./src/shaders/simple.frag", GL_FRAGMENT_SHADER);
     ui32 quadProgram = createProgram(quadVertex, quadFragment);
@@ -100,6 +104,13 @@ void initRenderer(Renderer *r) {
 
     glDeleteShader(quadVertex);
     glDeleteShader(quadFragment);
+
+    return r;
+}
+
+void setupScene(Renderer *r) {
+    f32 aspectRatio = r->screenWidth / r->screenHeight;
+    glViewport(0, 0, r->screenWidth * aspectRatio, r->screenHeight * aspectRatio);
 }
 
 void rendererCleanup(Renderer *r) {
@@ -109,7 +120,8 @@ void rendererCleanup(Renderer *r) {
     glDeleteProgram(r->quad.shaderProgram);
 }
 
-void drawFrame(Renderer *r) {
+void drawFrame(Renderer *r, Camera *c) {
+    // Needs cleanup
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -124,7 +136,7 @@ void drawFrame(Renderer *r) {
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    float metersToPixels = 100;
+    f32 metersToPixels = 100;
 
     // model = glm::translate(model, glm::vec3(300.0f, 300.0f, 0.0f));
     model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
