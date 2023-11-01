@@ -21,8 +21,8 @@ ui32 compileShader(string path, ui32 type) {
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
 
-    GLint success;
-    GLchar infoLog[512];
+    i32 success;
+    char infoLog[512];
     glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
     if(!success) {
         glGetShaderInfoLog(shader, 512, NULL, infoLog);
@@ -39,8 +39,8 @@ ui32 createProgram(ui32 vertexShader, ui32 fragmentShader) {
     glAttachShader(program, fragmentShader);
     glLinkProgram(program);
 
-    GLint success;
-    GLchar infoLog[512];
+    i32 success;
+    char infoLog[512];
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if(!success) {
         glGetProgramInfoLog(program, 512, NULL, infoLog);
@@ -58,11 +58,13 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
         -0.5f, -0.5f, 0.0f,
         -0.5f,  0.5f, 0.0f
     };
+
     const ui32 ind_size = 6;
     quad->indices = new ui32[ind_size]{
         0, 1, 3,
         1, 2, 3
     };
+
     quad->shaderProgram = program;
 
     ui32 VBO, VAO, EBO;
@@ -118,6 +120,8 @@ void rendererCleanup(Renderer *r) {
     glDeleteBuffers(1, &r->quad.vbo);
     glDeleteBuffers(1, &r->quad.ebo);
     glDeleteProgram(r->quad.shaderProgram);
+
+    delete r;
 }
 
 void drawFrame(Renderer *r, Camera *c) {
