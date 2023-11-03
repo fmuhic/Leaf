@@ -96,6 +96,7 @@ Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels
     Renderer *r = new Renderer {};
     r->screenWidth = screenWidth;
     r->screenHeight = screenHeight;
+    r->aspectRatio = screenWidth / screenHeight;
     r->metersToPixels = metersToPixels;
 
     ui32 quadVertex = compileShader("./src/shaders/simple.vert", GL_VERTEX_SHADER);
@@ -111,8 +112,7 @@ Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels
 }
 
 void setupScene(Renderer *r) {
-    f32 aspectRatio = r->screenWidth / r->screenHeight;
-    glViewport(0, 0, r->screenWidth * aspectRatio, r->screenHeight * aspectRatio);
+    glViewport(0, 0, r->screenWidth, r->screenHeight);
 }
 
 void rendererCleanup(Renderer *r) {
@@ -152,7 +152,7 @@ void drawFrame(Renderer *r, Camera *c, glm::vec3 *player) {
     GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera * r->metersToPixels));
 
-    glm::mat4 projection = glm::ortho(-1280.0f, 1280.0f, -720.0f, 720.0f, -1.0f, 1.0f);
+    glm::mat4 projection = glm::ortho(0.0f, 1000.0f * r->aspectRatio, 0.0f, 1000.0f, -1.0f, 1.0f);
     GLint projectionLocation = glGetUniformLocation(shaderProgram, "projection");
     glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 

@@ -64,7 +64,7 @@ int main() {
 
     setupScene(renderer);
 
-    vec3 player(0.0f, 0.0f, 0.0f);
+    vec3 player(1.0f, 1.0f, 0.0f);
 
     while (!glfwWindowShouldClose(window)) {
         input = {};

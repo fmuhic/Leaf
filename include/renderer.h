@@ -17,6 +17,7 @@ struct Renderer {
     VideoEntity quad;
     f32 screenWidth;
     f32 screenHeight;
+    f32 aspectRatio;
     f32 metersToPixels;
 };
 
