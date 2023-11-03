@@ -13,6 +13,7 @@ project(crunch VERSION 1.0)
 add_executable(crunch
     src/main.cpp
     src/loader.cpp
+    src/game.cpp
     src/renderer.cpp
 )
 

@@ -11,18 +11,23 @@
 
 #include "glm/ext/matrix_float4x4.hpp"
 #include "helpers.h"
-#include "loader.h"
+#include "game.h"
 #include "renderer.h"
 #include "state.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define DEFAULT_METERS_TO_PIXELS 100
+#define DEFAULT_METERS_TO_PIXELS 100.0
 
 using std::string;
+using std::cout;
+using std::endl;
+using glm::vec3;
+
+UserInput input{};
 
 int main() {
     glfwInit();
@@ -32,23 +37,23 @@ int main() {
 
     GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Clever title here", NULL, NULL);
     if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        cout << "Failed to create GLFW window" << endl;
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
     if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
 
     Camera *camera = new Camera {
         glm::lookAt(
-            glm::vec3(0.0, 0.0, 0.05f),
-            glm::vec3(0.0, 0.0, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)
+            vec3(0.0, 0.0, 0.05f),
+            vec3(0.0, 0.0, 0.0f),
+            vec3(0.0f, 1.0f, 0.0f)
         )
     };
     Renderer *renderer = createRenderer(
@@ -59,9 +64,13 @@ int main() {
 
     setupScene(renderer);
 
+    vec3 player(0.0f, 0.0f, 0.0f);
+
     while (!glfwWindowShouldClose(window)) {
+        input = {};
         processInput(window);
-        drawFrame(renderer, camera);
+        updateGame(&input, &player);
+        drawFrame(renderer, camera, &player);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -76,9 +85,17 @@ int main() {
 void processInput(GLFWwindow *window) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+    if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        input.leftPressed = true;
+    if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        input.rightPressed = true;
+    if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        input.upPressed = true;
+    if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        input.downPressed = true;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);

@@ -44,7 +44,7 @@ ui32 createProgram(ui32 vertexShader, ui32 fragmentShader) {
     glGetProgramiv(program, GL_LINK_STATUS, &success);
     if(!success) {
         glGetProgramInfoLog(program, 512, NULL, infoLog);
-        std::cout << "Unable to compile shader program: " << infoLog << endl;
+        cout << "Unable to compile shader program: " << infoLog << endl;
     }
 
     return program;
@@ -124,8 +124,7 @@ void rendererCleanup(Renderer *r) {
     delete r;
 }
 
-void drawFrame(Renderer *r, Camera *c) {
-    // Needs cleanup
+void drawFrame(Renderer *r, Camera *c, glm::vec3 *player) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -133,33 +132,31 @@ void drawFrame(Renderer *r, Camera *c) {
     glUseProgram(shaderProgram);
 
     glm::mat4 model = glm::mat4(1.0f);
-    glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f);
+    model = glm::translate(model, glm::vec3(player->x * r->metersToPixels, player->y * r->metersToPixels, 0.0f));
+    model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));
+    model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    GLint modelLocation = glGetUniformLocation(shaderProgram, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+    // glm::mat4 camera = glm::lookAt(
+    //     glm::vec3(player->x, plyaer->y, 1.0f),
+    //     glm::vec3(player->x, player->y, 0.0f),
+    //     glm::vec3(0.0f, 1.0f, 0.0f)
+    // );
     glm::mat4 camera = glm::lookAt(
-        glm::vec3(position.x, position.y, 0.05f),
-        glm::vec3(position.x, position.y, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
+    GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera * r->metersToPixels));
 
-    f32 metersToPixels = 100;
-
-    // model = glm::translate(model, glm::vec3(300.0f, 300.0f, 0.0f));
-    model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, glm::vec3(300.0f, 300.0f, 1.0f));
-
-    GLint modelMatrix = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(modelMatrix, 1, GL_FALSE, glm::value_ptr(model));
-
-    GLint viewMatrix = glGetUniformLocation(shaderProgram, "view");
-    glUniformMatrix4fv(viewMatrix, 1, GL_FALSE, glm::value_ptr(camera * metersToPixels));
-
-    glm::mat4 projection = glm::ortho(-1280.0f, 1280.0f, -720.0f, 720.0f, -10.0f, 10.0f);
-
-    GLint projectionMatrix = glGetUniformLocation(shaderProgram, "projection");
-    glUniformMatrix4fv(projectionMatrix, 1, GL_FALSE, glm::value_ptr(projection));
+    glm::mat4 projection = glm::ortho(-1280.0f, 1280.0f, -720.0f, 720.0f, -1.0f, 1.0f);
+    GLint projectionLocation = glGetUniformLocation(shaderProgram, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
-    glBindVertexArray(r->quad.vao); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
+    glBindVertexArray(r->quad.vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    // glDrawArrays(GL_TRIANGLES, 0, 3);
-    // glBindVertexArray(0); // no need to unbind it every time 
 }

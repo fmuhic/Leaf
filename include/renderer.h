@@ -1,5 +1,6 @@
 #pragma once
 
+#include <glm/glm.hpp>
 #include "types.h"
 #include "state.h"
 
@@ -16,10 +17,10 @@ struct Renderer {
     VideoEntity quad;
     f32 screenWidth;
     f32 screenHeight;
-    ui32 metersToPixels;
+    f32 metersToPixels;
 };
 
 Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels);
 void setupScene(Renderer *r);
 void rendererCleanup(Renderer *r);
-void drawFrame(Renderer *r, Camera *c);
+void drawFrame(Renderer *r, Camera *c, glm::vec3 *player);
