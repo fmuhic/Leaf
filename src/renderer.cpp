@@ -124,39 +124,52 @@ void rendererCleanup(Renderer *r) {
     delete r;
 }
 
-void drawFrame(Renderer *r, Camera *c, glm::vec3 *player) {
+void drawEntity(Renderer *r, Camera *c, glm::vec3 *p, glm::vec3 *color, f32 scale, f32 shaderProgram) {
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::translate(model, glm::vec3(p->x * r->metersToPixels, p->y * r->metersToPixels, 0.0f));
+    model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(scale, scale, 1.0f));
+
+    GLint modelLocation = glGetUniformLocation(shaderProgram, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+    GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(c->focus));
+
+    glm::mat4 projection = glm::ortho(-1000.0f * r->aspectRatio, 1000.0f * r->aspectRatio, -1000.0f, 1000.0f, -1.0f, 1.0f);
+    GLint projectionLocation = glGetUniformLocation(shaderProgram, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+
+    GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
+    glUniform4f(vertexColorLocation, color->x, color->y, color->z, 1.0f);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
+    glBindVertexArray(r->quad.vao);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void drawFrame(Renderer *r, Camera *c, Game *game, glm::vec3 *player) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     ui32 shaderProgram = r->quad.shaderProgram;
     glUseProgram(shaderProgram);
 
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(player->x * r->metersToPixels, player->y * r->metersToPixels, 0.0f));
-    model = glm::scale(model, glm::vec3(100.0f, 100.0f, 1.0f));
-    model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-    GLint modelLocation = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
-
-    // glm::mat4 camera = glm::lookAt(
-    //     glm::vec3(player->x, plyaer->y, 1.0f),
-    //     glm::vec3(player->x, player->y, 0.0f),
-    //     glm::vec3(0.0f, 1.0f, 0.0f)
-    // );
-    glm::mat4 camera = glm::lookAt(
-        glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, 0.0f, 0.0f),
+    c->focus = glm::lookAt(
+        glm::vec3(player->x, player->y, 0.0001f) * r->metersToPixels,
+        glm::vec3(player->x, player->y, 0.0f) * r->metersToPixels,
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
-    GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(camera * r->metersToPixels));
 
-    glm::mat4 projection = glm::ortho(0.0f, 1000.0f * r->aspectRatio, 0.0f, 1000.0f, -1.0f, 1.0f);
-    GLint projectionLocation = glGetUniformLocation(shaderProgram, "projection");
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+    auto entityColor = glm::vec3(0.3f, 0.7f, 0.1f);
+    auto playerColor = glm::vec3(1.0f, 0.0f, 0.0f);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
-    glBindVertexArray(r->quad.vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glm::vec3 entity(3.0f, 3.0f, 0.0f);
+    drawEntity(r, c, &entity, &playerColor, 300.0f, shaderProgram);
+    drawEntity(r, c, player, &entityColor, 100.0f, shaderProgram);
+
+    for (auto e: game->entities) {
+        if (e.isAlive)
+            drawEntity(r, c, &e.p, &entityColor, e.scale, shaderProgram);
+    }
 }

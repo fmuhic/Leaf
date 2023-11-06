@@ -24,4 +24,4 @@ struct Renderer {
 Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels);
 void setupScene(Renderer *r);
 void rendererCleanup(Renderer *r);
-void drawFrame(Renderer *r, Camera *c, glm::vec3 *player);
+void drawFrame(Renderer *r, Camera *c, Game *game, glm::vec3 *player);

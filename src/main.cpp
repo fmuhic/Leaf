@@ -16,7 +16,8 @@
 #include "state.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+void processKeyboardInput(GLFWwindow *window);
+void processMouseInput(GLFWwindow *window);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
@@ -27,7 +28,8 @@ using std::cout;
 using std::endl;
 using glm::vec3;
 
-UserInput input{};
+KeyboardInput kInput{};
+MouseInput mInput{};
 
 int main() {
     glfwInit();
@@ -65,12 +67,14 @@ int main() {
     setupScene(renderer);
 
     vec3 player(1.0f, 1.0f, 0.0f);
+    Game *game = new Game{};
 
     while (!glfwWindowShouldClose(window)) {
-        input = {};
-        processInput(window);
-        updateGame(&input, &player);
-        drawFrame(renderer, camera, &player);
+        kInput = {};
+        processKeyboardInput(window);
+        processMouseInput(window);
+        updateGame(camera, game, &kInput, &mInput, &player);
+        drawFrame(renderer, camera, game, &player);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -82,17 +86,40 @@ int main() {
     return 0;
 }
 
-void processInput(GLFWwindow *window) {
+void processKeyboardInput(GLFWwindow *window) {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
     if(glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        input.leftPressed = true;
+        kInput.leftPressed = true;
     if(glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        input.rightPressed = true;
+        kInput.rightPressed = true;
     if(glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        input.upPressed = true;
+        kInput.upPressed = true;
     if(glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        input.downPressed = true;
+        kInput.downPressed = true;
+}
+
+void processMouseInput(GLFWwindow *window) {
+    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+
+    if (state == GLFW_RELEASE)
+        mInput.leftClickReleased = true;
+    else
+        mInput.leftClickPressed = false;
+    
+    if (mInput.leftClickPressed && mInput.leftClickReleased)
+        mInput.leftClickClicked = true;
+    else
+        mInput.leftClickClicked = false;
+
+    if (state == GLFW_PRESS)
+        mInput.leftClickPressed = true;
+    else
+        mInput.leftClickPressed = false;
+
+    f64 x, y;
+    glfwGetCursorPos(window, &x, &y);
+    mInput.position = glm::vec3(x, y, 0.0f);
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {

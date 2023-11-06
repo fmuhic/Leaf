@@ -3,4 +3,4 @@
 #include <glm/glm.hpp>
 #include "state.h"
 
-void updateGame(UserInput *input, glm::vec3 *player);
+void updateGame(Camera *c, Game *game, KeyboardInput *kInput, MouseInput *mInput, glm::vec3 *player);
