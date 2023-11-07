@@ -50,7 +50,6 @@ int main() {
         cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
-
     renderer = createRenderer(
         (f32) SCREEN_WIDTH,
         (f32) SCREEN_HEIGHT,
@@ -65,11 +64,12 @@ int main() {
         )
     };
 
-    setupScene(renderer);
+    // setupScene(renderer);
 
     vec3 player(0.0f, 0.0f, 0.0f);
     Game *game = new Game{};
 
+    framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
     while (!glfwWindowShouldClose(window)) {
         kInput = {};
         processKeyboardInput(window);
@@ -122,15 +122,13 @@ void processMouseInput(GLFWwindow *window) {
     glfwGetCursorPos(window, &x, &y);
     glm::vec3 worldCoordinates = screenToWorld(glm::vec3(x, y, 0.0f), scene, renderer->screenWidth, renderer->screenHeight);
     mInput.position = glm::vec3(
-        worldCoordinates.x / renderer->metersToPixels + scene->cameraFollow.x,
-        worldCoordinates.y / renderer->metersToPixels + scene->cameraFollow.y,
+        worldCoordinates.x / renderer->metersToPixels,
+        worldCoordinates.y / renderer->metersToPixels,
         0.0f
     );
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
     renderer->screenWidth = width;
     renderer->screenHeight = height;
@@ -144,11 +142,9 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
         -1.0f,
         1.0f
     );
-
-    scene->inverseProjectionView = glm::inverse(scene->projection * scene->camera);
 }
 
 glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height) {
     glm::vec3 ndc = glm::vec3(p.x / width, 1.0f - p.y / height, p.z) * 2.0f - 1.0f;
-    return scene->inverseProjectionView * glm::vec4(ndc, 1);
+    return glm::inverse(scene->projection * scene->camera) * glm::vec4(ndc, 1);
 }

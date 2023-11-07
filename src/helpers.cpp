@@ -8,3 +8,8 @@ ui32 pickRand(ui32 min, ui32 max) {
 
     return dist6(rng);
 }
+
+void printVec(std::string name, glm::vec3 p) {
+    std::cout << name << " (x=" << p.x << ", y=" << p.y << ", z=" << p.z << ")\n";
+}
+

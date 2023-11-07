@@ -21,10 +21,6 @@ void dumpEntites(Game *game, i32 n) {
     }
 }
 
-void printVec(std::string name, glm::vec3 p) {
-    cout << name << " (x=" << p.x << ", y=" << p.y << ", z=" << p.z << ")\n";
-}
-
 void updateGame(Game *game, KeyboardInput *kInput, MouseInput *mInput, glm::vec3 *player) {
     if (kInput->rightPressed)
         player->x += 0.1f;
