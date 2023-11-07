@@ -15,6 +15,7 @@ add_executable(crunch
     src/loader.cpp
     src/game.cpp
     src/renderer.cpp
+    src/helpers.cpp
 )
 
 add_compile_options(-Wall -g)

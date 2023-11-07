@@ -9,7 +9,9 @@
 #include <string>
 #include <iostream>
 
+#include "glm/common.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/vector_float3.hpp"
 #include "helpers.h"
 #include "game.h"
 #include "renderer.h"
@@ -18,6 +20,7 @@
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processKeyboardInput(GLFWwindow *window);
 void processMouseInput(GLFWwindow *window);
+glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
@@ -30,6 +33,8 @@ using glm::vec3;
 
 KeyboardInput kInput{};
 MouseInput mInput{};
+Renderer *renderer;
+Scene *scene;
 
 int main() {
     glfwInit();
@@ -51,30 +56,31 @@ int main() {
         return -1;
     }
 
-    Camera *camera = new Camera {
+    renderer = createRenderer(
+        (f32) SCREEN_WIDTH,
+        (f32) SCREEN_HEIGHT,
+        DEFAULT_METERS_TO_PIXELS
+    );
+
+    scene = new Scene {
         glm::lookAt(
             vec3(0.0, 0.0, 0.05f),
             vec3(0.0, 0.0, 0.0f),
             vec3(0.0f, 1.0f, 0.0f)
         )
     };
-    Renderer *renderer = createRenderer(
-        (f32) SCREEN_WIDTH,
-        (f32) SCREEN_HEIGHT,
-        DEFAULT_METERS_TO_PIXELS
-    );
 
     setupScene(renderer);
 
-    vec3 player(1.0f, 1.0f, 0.0f);
+    vec3 player(0.0f, 0.0f, 0.0f);
     Game *game = new Game{};
 
     while (!glfwWindowShouldClose(window)) {
         kInput = {};
         processKeyboardInput(window);
         processMouseInput(window);
-        updateGame(camera, game, &kInput, &mInput, &player);
-        drawFrame(renderer, camera, game, &player);
+        updateGame(game, &kInput, &mInput, &player);
+        drawFrame(renderer, scene, game, &player);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -119,11 +125,35 @@ void processMouseInput(GLFWwindow *window) {
 
     f64 x, y;
     glfwGetCursorPos(window, &x, &y);
-    mInput.position = glm::vec3(x, y, 0.0f);
+    glm::vec3 worldCoordinates = screenToWorld(glm::vec3(x, y, 0.0f), scene, renderer->screenWidth, renderer->screenHeight);
+    mInput.position = glm::vec3(
+        worldCoordinates.x / renderer->metersToPixels + scene->cameraFollow.x,
+        worldCoordinates.y / renderer->metersToPixels + scene->cameraFollow.y,
+        0.0f
+    );
 }
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
+    renderer->screenWidth = width;
+    renderer->screenHeight = height;
+    renderer->aspectRatio = (f32) width / (f32) height;
+
+    scene->projection = glm::ortho(
+        -1000.0f * renderer->aspectRatio,
+        1000.0f * renderer->aspectRatio,
+        -1000.0f,
+        1000.0f,
+        -1.0f,
+        1.0f
+    );
+
+    scene->inverseProjectionView = glm::inverse(scene->projection * scene->camera);
+}
+
+glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height) {
+    glm::vec3 ndc = glm::vec3(p.x / width, 1.0f - p.y / height, p.z) * 2.0f - 1.0f;
+    return scene->inverseProjectionView * glm::vec4(ndc, 1);
 }
