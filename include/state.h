@@ -1,9 +1,7 @@
 #pragma once
 
-#include <cstdint>
-#include <unordered_map>
-#include <string>
 #include <glm/mat4x4.hpp>
+#include <glm/glm.hpp>
 
 #include "types.h"
 
