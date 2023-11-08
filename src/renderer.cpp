@@ -92,12 +92,11 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
     quad->ebo = EBO;
 }
 
-Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels) {
+Renderer * createRenderer(f32 screenWidth, f32 screenHeight) {
     Renderer *r = new Renderer {};
     r->screenWidth = screenWidth;
     r->screenHeight = screenHeight;
     r->aspectRatio = screenWidth / screenHeight;
-    r->metersToPixels = metersToPixels;
 
     ui32 quadVertex = compileShader("./src/shaders/simple.vert", GL_VERTEX_SHADER);
     ui32 quadFragment = compileShader("./src/shaders/simple.frag", GL_FRAGMENT_SHADER);
@@ -126,7 +125,7 @@ void rendererCleanup(Renderer *r) {
 
 void drawEntity(f32 shaderProgram, Renderer *r, Scene *scene, glm::vec3 *p, f32 scale, glm::vec3 *color) {
     glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(p->x * r->metersToPixels, p->y * r->metersToPixels, 0.0f));
+    model = glm::translate(model, glm::vec3(p->x, p->y, 0.0f));
     model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
     model = glm::scale(model, glm::vec3(scale, scale, 1.0f));
 
@@ -153,19 +152,19 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
 
     scene->cameraFollow = game->player.p;
     scene->camera = glm::lookAt(
-        glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0001f) * r->metersToPixels,
-        glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f) * r->metersToPixels,
+        glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 1.0f),
+        glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
     ui32 shaderProgram = r->quad.shaderProgram;
     glUseProgram(shaderProgram);
 
-    auto entityColor = glm::vec3(0.3f, 0.7f, 0.1f);
+    auto entityColor = glm::vec3(0.1f, 0.4f, 0.6f);
     glm::vec3 entity(3.0f, 3.0f, 0.0f);
 
-    drawEntity(shaderProgram, r, scene, &entity, 300.0f, &entityColor);
-    drawEntity(shaderProgram, r, scene, &game->player.p, 100.0f, &game->player.color);
+    drawEntity(shaderProgram, r, scene, &entity, 2.0f, &entityColor);
+    drawEntity(shaderProgram, r, scene, &game->player.p, 1.5f, &game->player.color);
 
     for (auto e: game->entities) {
         if (e.isAlive)

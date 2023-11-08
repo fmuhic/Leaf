@@ -49,7 +49,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             Entity *e = &game->entities[eIndex];
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
             e->isAlive = true;
-            e->scale = 70;
+            e->scale = 1;
             e->color = game->colors[pickRand(0, COLOR_COUNT)];
         }
     }

@@ -18,10 +18,9 @@ struct Renderer {
     f32 screenWidth;
     f32 screenHeight;
     f32 aspectRatio;
-    f32 metersToPixels;
 };
 
-Renderer * createRenderer(f32 screenWidth, f32 screenHeight, ui32 metersToPixels);
+Renderer * createRenderer(f32 screenWidth, f32 screenHeight);
 void setupScene(Renderer *r);
 void rendererCleanup(Renderer *r);
 void drawFrame(Renderer *r, Scene *scene, Game *game);

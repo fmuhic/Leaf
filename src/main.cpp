@@ -7,6 +7,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "glm/ext/vector_float3.hpp"
 #include "helpers.h"
 #include "game.h"
 #include "renderer.h"
@@ -19,7 +20,6 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define DEFAULT_METERS_TO_PIXELS 100.0
 #define GAME_UPDATE_INTERVAL_SEC 0.005f
 
 using std::string;
@@ -31,7 +31,6 @@ KeyboardInput kInput{};
 MouseInput mInput{};
 Renderer *renderer;
 Scene *scene;
-Game *game = new Game{};
 
 int main() {
     glfwInit();
@@ -54,8 +53,7 @@ int main() {
     }
     renderer = createRenderer(
         (f32) SCREEN_WIDTH,
-        (f32) SCREEN_HEIGHT,
-        DEFAULT_METERS_TO_PIXELS
+        (f32) SCREEN_HEIGHT
     );
 
     scene = new Scene {
@@ -66,9 +64,10 @@ int main() {
         )
     };
 
-    vec3 player(0.0f, 0.0f, 0.0f);
+    Game *game = new Game{};
+    game->player.scale = 1.5f;
+    game->player.color = glm::vec3(0.3f, 0.7f, 0.1f);
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
-    game->player.isAlive = true;
 
     f64 previous = glfwGetTime();
     f64 lag = 0.0;
@@ -77,20 +76,16 @@ int main() {
         f64 elapsed = current - previous;
         lag += elapsed;
         previous = current;
-        cout << "elapsed = " << elapsed << endl;
-
-        kInput = {};
-        processKeyboardInput(window);
-        processMouseInput(window);
 
         i32 count = 0;
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
+            kInput = {};
+            processKeyboardInput(window);
+            processMouseInput(window);
             updateGame(GAME_UPDATE_INTERVAL_SEC, game, &kInput, &mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
             count++;
         }
-
-        cout << "count = " << count << endl;
 
         drawFrame(renderer, scene, game);
 
@@ -139,8 +134,8 @@ void processMouseInput(GLFWwindow *window) {
     glfwGetCursorPos(window, &x, &y);
     glm::vec3 worldCoordinates = screenToWorld(glm::vec3(x, y, 0.0f), scene, renderer->screenWidth, renderer->screenHeight);
     mInput.position = glm::vec3(
-        worldCoordinates.x / renderer->metersToPixels,
-        worldCoordinates.y / renderer->metersToPixels,
+        worldCoordinates.x,
+        worldCoordinates.y,
         0.0f
     );
 }
@@ -152,10 +147,10 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
     renderer->aspectRatio = (f32) width / (f32) height;
 
     scene->projection = glm::ortho(
-        -1000.0f * renderer->aspectRatio,
-        1000.0f * renderer->aspectRatio,
-        -1000.0f,
-        1000.0f,
+        -10.0f * renderer->aspectRatio,
+        10.0f * renderer->aspectRatio,
+        -10.0f,
+        10.0f,
         -1.0f,
         1.0f
     );
