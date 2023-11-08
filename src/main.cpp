@@ -1,11 +1,11 @@
+#include <assert.h>
+#include <string>
+#include <iostream>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include <assert.h>
-#include <string>
-#include <iostream>
 
 #include "helpers.h"
 #include "game.h"
@@ -20,6 +20,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define DEFAULT_METERS_TO_PIXELS 100.0
+#define GAME_UPDATE_INTERVAL_SEC 0.005f
 
 using std::string;
 using std::cout;
@@ -30,6 +31,7 @@ KeyboardInput kInput{};
 MouseInput mInput{};
 Renderer *renderer;
 Scene *scene;
+Game *game = new Game{};
 
 int main() {
     glfwInit();
@@ -64,18 +66,33 @@ int main() {
         )
     };
 
-    // setupScene(renderer);
-
     vec3 player(0.0f, 0.0f, 0.0f);
-    Game *game = new Game{};
-
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
+    game->player.isAlive = true;
+
+    f64 previous = glfwGetTime();
+    f64 lag = 0.0;
     while (!glfwWindowShouldClose(window)) {
+        f64 current = glfwGetTime();
+        f64 elapsed = current - previous;
+        lag += elapsed;
+        previous = current;
+        cout << "elapsed = " << elapsed << endl;
+
         kInput = {};
         processKeyboardInput(window);
         processMouseInput(window);
-        updateGame(game, &kInput, &mInput, &player);
-        drawFrame(renderer, scene, game, &player);
+
+        i32 count = 0;
+        while (lag > GAME_UPDATE_INTERVAL_SEC) {
+            updateGame(GAME_UPDATE_INTERVAL_SEC, game, &kInput, &mInput);
+            lag -= GAME_UPDATE_INTERVAL_SEC;
+            count++;
+        }
+
+        cout << "count = " << count << endl;
+
+        drawFrame(renderer, scene, game);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

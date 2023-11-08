@@ -30,6 +30,8 @@ struct Scene {
 
 struct Entity {
     bool isAlive = false;
+    glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 p = glm::vec3(0.0f, 0.0f, 0.0f);
     f32 scale = 50.0f;
     glm::vec3 color;
@@ -37,6 +39,7 @@ struct Entity {
 
 struct Game {
     Entity entities[ENTITY_COUNT];  
+    Entity player;
     glm::vec3 colors[COLOR_COUNT] {
         glm::vec3(0.80f, 0.38f, 0.33f),
         glm::vec3(0.93f, 0.44f, 0.39f),

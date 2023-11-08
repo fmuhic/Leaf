@@ -147,11 +147,11 @@ void drawEntity(f32 shaderProgram, Renderer *r, Scene *scene, glm::vec3 *p, f32 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void drawFrame(Renderer *r, Scene *scene, Game *game, glm::vec3 *player) {
+void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    scene->cameraFollow = *player;
+    scene->cameraFollow = game->player.p;
     scene->camera = glm::lookAt(
         glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0001f) * r->metersToPixels,
         glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f) * r->metersToPixels,
@@ -162,11 +162,10 @@ void drawFrame(Renderer *r, Scene *scene, Game *game, glm::vec3 *player) {
     glUseProgram(shaderProgram);
 
     auto entityColor = glm::vec3(0.3f, 0.7f, 0.1f);
-    auto playerColor = glm::vec3(1.0f, 0.0f, 0.0f);
-
     glm::vec3 entity(3.0f, 3.0f, 0.0f);
+
     drawEntity(shaderProgram, r, scene, &entity, 300.0f, &entityColor);
-    drawEntity(shaderProgram, r, scene, player, 100.0f, &playerColor);
+    drawEntity(shaderProgram, r, scene, &game->player.p, 100.0f, &game->player.color);
 
     for (auto e: game->entities) {
         if (e.isAlive)

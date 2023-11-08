@@ -21,15 +21,27 @@ void dumpEntites(Game *game, i32 n) {
     }
 }
 
-void updateGame(Game *game, KeyboardInput *kInput, MouseInput *mInput, glm::vec3 *player) {
+void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
+    game->player.a = glm::vec3(0.0f, 0.0f, 0.0f);
+
     if (kInput->rightPressed)
-        player->x += 0.1f;
+        game->player.a += glm::vec3(100000.0f, 0.0f, 0.0f);
     if (kInput->leftPressed)
-        player->x -= 0.1f;
+        game->player.a += glm::vec3(-100000.0f, 0.0f, 0.0f);
     if (kInput->upPressed)
-        player->y += 0.1f;
+        game->player.a += glm::vec3(0.0f, 100000.0f, 0.0f);
     if (kInput->downPressed)
-        player->y -= 0.1f;
+        game->player.a += glm::vec3(0.0f, -100000.0f, 0.0f);
+
+    game->player.v += game->player.a * dt * 0.5f;
+    game->player.p += game->player.v * dt * dt * 0.5f;
+
+    // Poor mans friction
+    game->player.v -= game->player.v * 0.045f;
+    
+    printVec("player p", game->player.p);
+    printVec("player v", game->player.v);
+    printVec("player a", game->player.a);
 
     if (mInput->leftClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
@@ -39,6 +51,17 @@ void updateGame(Game *game, KeyboardInput *kInput, MouseInput *mInput, glm::vec3
             e->isAlive = true;
             e->scale = 70;
             e->color = game->colors[pickRand(0, COLOR_COUNT)];
+        }
+    }
+
+    for (auto &e: game->entities) {
+        if(e.isAlive) {
+            glm::vec3 g = glm::vec3(0.0f, -900.81f, 0.0f);
+            e.v += (e.a + g) * dt * 0.5f;
+            e.p += e.v * dt * dt * 0.5f;
+
+            // Poor mans friction
+            // e.v -= e.v * 0.005f;
         }
     }
 }
