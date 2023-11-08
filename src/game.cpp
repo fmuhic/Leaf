@@ -25,24 +25,22 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     game->player.a = glm::vec3(0.0f, 0.0f, 0.0f);
 
     if (kInput->rightPressed)
-        game->player.a += glm::vec3(100000.0f, 0.0f, 0.0f);
+        game->player.a += glm::vec3(100.0f, 0.0f, 0.0f);
     if (kInput->leftPressed)
-        game->player.a += glm::vec3(-100000.0f, 0.0f, 0.0f);
+        game->player.a += glm::vec3(-100.0f, 0.0f, 0.0f);
     if (kInput->upPressed)
-        game->player.a += glm::vec3(0.0f, 100000.0f, 0.0f);
+        game->player.a += glm::vec3(0.0f, 100.0f, 0.0f);
     if (kInput->downPressed)
-        game->player.a += glm::vec3(0.0f, -100000.0f, 0.0f);
+        game->player.a += glm::vec3(0.0f, -100.0f, 0.0f);
 
-    game->player.v += game->player.a * dt * 0.5f;
-    game->player.p += game->player.v * dt * dt * 0.5f;
+    glm::vec3 p = game->player.p;
+    glm::vec3 v = game->player.v;
+    game->player.v = game->player.a * dt + v;
+    game->player.p = game->player.a * dt * dt * 0.5f + v * dt + p;
 
     // Poor mans friction
-    game->player.v -= game->player.v * 0.045f;
+    game->player.v -= game->player.v * 0.05f;
     
-    printVec("player p", game->player.p);
-    printVec("player v", game->player.v);
-    printVec("player a", game->player.a);
-
     if (mInput->leftClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
@@ -56,12 +54,12 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
 
     for (auto &e: game->entities) {
         if(e.isAlive) {
-            glm::vec3 g = glm::vec3(0.0f, -900.81f, 0.0f);
-            e.v += (e.a + g) * dt * 0.5f;
-            e.p += e.v * dt * dt * 0.5f;
+            glm::vec3 p = e.p;
+            glm::vec3 v = e.v;
 
-            // Poor mans friction
-            // e.v -= e.v * 0.005f;
+            glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
+            e.v = (e.a + g) * dt + v;
+            e.p = e.a * dt * dt * 0.5f + e.v * dt + p;
         }
     }
 }
