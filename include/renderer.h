@@ -7,6 +7,7 @@
 struct VideoEntity {
     f32 *vertices;
     ui32 *indices;
+    ui32 indiceCount;
     ui32 shaderProgram;
     ui32 vbo;
     ui32 vao;
@@ -15,6 +16,7 @@ struct VideoEntity {
 
 struct Renderer {
     VideoEntity quad;
+    VideoEntity circle;
     f32 screenWidth;
     f32 screenHeight;
     f32 aspectRatio;

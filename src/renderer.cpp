@@ -1,4 +1,5 @@
 #include <string>
+#include <assert.h>
 #include <iostream>
 #include <glad/glad.h>
 #include <glm/mat4x4.hpp>
@@ -50,6 +51,55 @@ ui32 createProgram(ui32 vertexShader, ui32 fragmentShader) {
     return program;
 }
 
+void createCircleEntity(VideoEntity *circle, ui32 program, f32 r, ui32 pointCount) {
+    assert(pointCount > 2 && "We need at least 3 points to approximate circle");
+    f32 baseAngle = 360.0f / pointCount;
+    const i32 triangleCount = pointCount - 2;
+    
+    circle->vertices = new f32[pointCount * 3];
+    for (i32 i = 0; i < pointCount; ++i) {
+        f32 angle = glm::radians(baseAngle * i);
+        circle->vertices[i * 3] = r * glm::cos(angle);
+        circle->vertices[i * 3 + 1] = r * glm::sin(angle);
+        circle->vertices[i * 3 + 2] = 0.0f;
+    }
+    for (i32 i = 0; i < pointCount*3; ++i) {
+        cout << "vertice " << i << "= " << circle->vertices[i] << endl;
+    }
+
+    circle->indiceCount = triangleCount * 3;
+    circle->indices = new ui32[circle->indiceCount];
+    for (i32 i = 0; i < triangleCount; ++i) {
+        circle->indices[i * 3] = 0;
+        circle->indices[i * 3 + 1] = i + 1;
+        circle->indices[i * 3 + 2] = i + 2;
+    }
+
+    ui32 VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+ 
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, pointCount * 3 * sizeof(f32), circle->vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, circle->indiceCount * sizeof(ui32), circle->indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    circle->vao = VAO;
+    circle->vbo = VBO;
+    circle->ebo = EBO;
+}
+
 void createQuadEntity(VideoEntity *quad, ui32 program) {
     const ui32 vert_size = 12;
     quad->vertices = new f32[vert_size]{
@@ -59,8 +109,8 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
         -0.5f,  0.5f, 0.0f
     };
 
-    const ui32 ind_size = 6;
-    quad->indices = new ui32[ind_size]{
+    quad->indiceCount = 6;
+    quad->indices = new ui32[quad->indiceCount]{
         0, 1, 3,
         1, 2, 3
     };
@@ -78,7 +128,7 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
     glBufferData(GL_ARRAY_BUFFER, vert_size * sizeof(f32), quad->vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, ind_size * sizeof(ui32), quad->indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, quad->indiceCount * sizeof(ui32), quad->indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *) 0);
     glEnableVertexAttribArray(0);
@@ -103,6 +153,7 @@ Renderer * createRenderer(f32 screenWidth, f32 screenHeight) {
     ui32 quadProgram = createProgram(quadVertex, quadFragment);
 
     createQuadEntity(&r->quad, quadProgram);
+    createCircleEntity(&r->circle, quadProgram, 0.5f, 32);
 
     glDeleteShader(quadVertex);
     glDeleteShader(quadFragment);
@@ -123,7 +174,8 @@ void rendererCleanup(Renderer *r) {
     delete r;
 }
 
-void drawEntity(f32 shaderProgram, Renderer *r, Scene *scene, glm::vec3 *p, f32 scale, glm::vec3 *color) {
+// Draw this properly, first all quads then all circles
+void drawEntity(f32 shaderProgram, VideoEntity *e, Scene *scene, glm::vec3 *p, f32 scale, glm::vec3 *color) {
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(p->x, p->y, 0.0f));
     model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
@@ -141,9 +193,13 @@ void drawEntity(f32 shaderProgram, Renderer *r, Scene *scene, glm::vec3 *p, f32 
     GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
     glUniform4f(vertexColorLocation, color->x, color->y, color->z, 1.0f);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
-    glBindVertexArray(r->quad.vao);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e->ebo);
+    glBindVertexArray(e->vao);
+    glDrawElements(GL_TRIANGLES, e->indiceCount, GL_UNSIGNED_INT, 0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void drawFrame(Renderer *r, Scene *scene, Game *game) {
@@ -163,11 +219,11 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     auto entityColor = glm::vec3(0.1f, 0.4f, 0.6f);
     glm::vec3 entity(3.0f, 3.0f, 0.0f);
 
-    drawEntity(shaderProgram, r, scene, &entity, 2.0f, &entityColor);
-    drawEntity(shaderProgram, r, scene, &game->player.p, 1.5f, &game->player.color);
+    drawEntity(shaderProgram, &r->quad, scene, &entity, 2.0f, &entityColor);
+    drawEntity(shaderProgram, &r->circle, scene, &game->player.p, 1.5f, &game->player.color);
 
     for (auto e: game->entities) {
         if (e.isAlive)
-            drawEntity(shaderProgram, r, scene, &e.p, e.scale, &e.color);
+            drawEntity(shaderProgram, &r->quad, scene, &e.p, e.scale, &e.color);
     }
 }

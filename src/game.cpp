@@ -21,6 +21,7 @@ void dumpEntites(Game *game, i32 n) {
     }
 }
 
+i32 i = 0;
 void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     game->player.a = glm::vec3(0.0f, 0.0f, 0.0f);
 
@@ -48,7 +49,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
             e->isAlive = true;
             e->scale = 1;
-            e->color = game->colors[pickRand(0, COLOR_COUNT)];
+            e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
         }
     }
 
