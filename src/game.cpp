@@ -45,10 +45,12 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     if (mInput->leftClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
+            EntityType type = (EntityType) pickRand(0, 1);
             Entity *e = &game->entities[eIndex];
+            e->type = type;
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
             e->isAlive = true;
-            e->scale = 1;
+            e->scale = pickRand(10, 20) / 10.0f;
             e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
         }
     }

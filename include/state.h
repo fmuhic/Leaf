@@ -4,8 +4,13 @@
 
 #include "types.h"
 
-#define ENTITY_COUNT 1000
+#define ENTITY_COUNT 100
 #define COLOR_COUNT 14
+
+enum class EntityType: ui32 {
+    ENTITY_QUAD = 0,
+    ENTITY_CIRCLE = 1
+};
 
 struct KeyboardInput {
     bool leftPressed;
@@ -30,10 +35,12 @@ struct Scene {
 
 struct Entity {
     bool isAlive = false;
+    EntityType type = EntityType::ENTITY_QUAD;
     glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 p = glm::vec3(0.0f, 0.0f, 0.0f);
     f32 scale = 1.0f;
+    f32 r = 1.0f;
     glm::vec3 color;
 };
 

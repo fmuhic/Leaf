@@ -7,8 +7,10 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "helpers.h"
 #include "renderer.h"
 #include "loader.h"
+#include "state.h"
 
 using std::string;
 using std::cout;
@@ -62,9 +64,6 @@ void createCircleEntity(VideoEntity *circle, ui32 program, f32 r, ui32 pointCoun
         circle->vertices[i * 3] = r * glm::cos(angle);
         circle->vertices[i * 3 + 1] = r * glm::sin(angle);
         circle->vertices[i * 3 + 2] = 0.0f;
-    }
-    for (i32 i = 0; i < pointCount*3; ++i) {
-        cout << "vertice " << i << "= " << circle->vertices[i] << endl;
     }
 
     circle->indiceCount = triangleCount * 3;
@@ -193,13 +192,7 @@ void drawEntity(f32 shaderProgram, VideoEntity *e, Scene *scene, glm::vec3 *p, f
     GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
     glUniform4f(vertexColorLocation, color->x, color->y, color->z, 1.0f);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, e->ebo);
-    glBindVertexArray(e->vao);
     glDrawElements(GL_TRIANGLES, e->indiceCount, GL_UNSIGNED_INT, 0);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void drawFrame(Renderer *r, Scene *scene, Game *game) {
@@ -216,14 +209,25 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     ui32 shaderProgram = r->quad.shaderProgram;
     glUseProgram(shaderProgram);
 
-    auto entityColor = glm::vec3(0.1f, 0.4f, 0.6f);
-    glm::vec3 entity(3.0f, 3.0f, 0.0f);
 
-    drawEntity(shaderProgram, &r->quad, scene, &entity, 2.0f, &entityColor);
-    drawEntity(shaderProgram, &r->circle, scene, &game->player.p, 1.5f, &game->player.color);
-
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
+    glBindVertexArray(r->quad.vao);
     for (auto e: game->entities) {
-        if (e.isAlive)
+        if (e.isAlive && e.type == EntityType::ENTITY_QUAD)
             drawEntity(shaderProgram, &r->quad, scene, &e.p, e.scale, &e.color);
     }
+    drawEntity(shaderProgram, &r->quad, scene, &game->player.p, 1.5f, &game->player.color);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);
+    glBindVertexArray(r->circle.vao);
+    for (auto e: game->entities) {
+        if (e.isAlive && e.type == EntityType::ENTITY_CIRCLE)
+            drawEntity(shaderProgram, &r->circle, scene, &e.p, e.scale, &e.color);
+    }
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
