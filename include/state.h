@@ -39,8 +39,9 @@ struct Entity {
     glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 p = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::mat4 model;
     f32 scale = 1.0f;
-    f32 r = 1.0f;
+    f32 r = 0.5f;
     glm::vec3 color;
 };
 
@@ -64,4 +65,3 @@ struct Game {
         glm::vec3(0.86f, 0.46f, 0.20f)
     };
 };
-

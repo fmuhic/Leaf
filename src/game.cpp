@@ -1,8 +1,8 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "game.h"
-#include "glm/ext/vector_float3.hpp"
 #include "helpers.h"
+#include "physics.h"
 #include "state.h"
 
 using std::cout;
@@ -45,7 +45,8 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     if (mInput->leftClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
-            EntityType type = (EntityType) pickRand(0, 1);
+            // EntityType type = (EntityType) pickRand(0, 1);
+            EntityType type = EntityType::ENTITY_CIRCLE;
             Entity *e = &game->entities[eIndex];
             e->type = type;
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
@@ -55,14 +56,18 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
         }
     }
 
+    checkCollisions(game);
+
     for (auto &e: game->entities) {
         if(e.isAlive) {
             glm::vec3 p = e.p;
             glm::vec3 v = e.v;
 
-            glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
+            // glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
+            glm::vec3 g = glm::vec3(0.0f, 0.0f, 0.0f);
             e.v = (e.a + g) * dt + v;
             e.p = e.a * dt * dt * 0.5f + e.v * dt + p;
+            e.v -= e.v * 0.1f;
         }
     }
 }
