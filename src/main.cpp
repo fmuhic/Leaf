@@ -79,14 +79,12 @@ int main() {
         lag += elapsed;
         previous = current;
 
-        i32 count = 0;
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
             kInput = {};
             processKeyboardInput(window);
             processMouseInput(window);
             updateGame(GAME_UPDATE_INTERVAL_SEC, game, &kInput, &mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
-            count++;
         }
 
         drawFrame(renderer, scene, game);
