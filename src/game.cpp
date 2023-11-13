@@ -21,7 +21,6 @@ void dumpEntites(Game *game, i32 n) {
     }
 }
 
-i32 i = 0;
 void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     Entity &player = game->entities[0];
     player.a = glm::vec3(0.0f, 0.0f, 0.0f);
