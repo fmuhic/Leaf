@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./build/crunch
+./build/leaf

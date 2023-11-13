@@ -174,14 +174,9 @@ void rendererCleanup(Renderer *r) {
 }
 
 // Draw this properly, first all quads then all circles
-void drawEntity(f32 shaderProgram, VideoEntity *e, Scene *scene, glm::vec3 *p, f32 scale, glm::vec3 *color) {
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, glm::vec3(p->x, p->y, 0.0f));
-    model = glm::rotate(model, 0.0f, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::scale(model, glm::vec3(scale, scale, 1.0f));
-
+void drawEntity(f32 shaderProgram, VideoEntity *e, Scene *scene, glm::mat4 *model, glm::vec3 *color) {
     GLint modelLocation = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(*model));
 
     GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
     glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(scene->camera));
@@ -199,7 +194,7 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    scene->cameraFollow = game->player.p;
+    scene->cameraFollow = game->entities[0].p;
     scene->camera = glm::lookAt(
         glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 1.0f),
         glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f),
@@ -214,9 +209,8 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glBindVertexArray(r->quad.vao);
     for (auto e: game->entities) {
         if (e.isAlive && e.type == EntityType::ENTITY_QUAD)
-            drawEntity(shaderProgram, &r->quad, scene, &e.p, e.scale, &e.color);
+            drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
     }
-    drawEntity(shaderProgram, &r->quad, scene, &game->player.p, 1.5f, &game->player.color);
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -225,7 +219,7 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glBindVertexArray(r->circle.vao);
     for (auto e: game->entities) {
         if (e.isAlive && e.type == EntityType::ENTITY_CIRCLE)
-            drawEntity(shaderProgram, &r->circle, scene, &e.p, e.scale, &e.color);
+            drawEntity(shaderProgram, &r->circle, scene, &e.model, &e.color);
     }
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0); 

@@ -8,9 +8,9 @@ set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 
-project(crunch VERSION 1.0)
+project(leaf VERSION 1.0)
 
-add_executable(crunch
+add_executable(leaf
     src/main.cpp
     src/loader.cpp
     src/renderer.cpp
@@ -20,15 +20,15 @@ add_executable(crunch
 )
 
 add_compile_options(-Wall -g)
-target_include_directories(crunch PRIVATE include)
+target_include_directories(leaf PRIVATE include)
 
 find_package(OpenGL REQUIRED)
 
 add_subdirectory(libs/glfw)
-target_link_libraries(crunch glfw)
+target_link_libraries(leaf glfw)
 
 add_subdirectory(libs/glad)
-target_link_libraries(crunch glad)
+target_link_libraries(leaf glad)
 
 add_subdirectory(libs/glm)
-target_link_libraries(crunch glm)
+target_link_libraries(leaf glm)

@@ -23,24 +23,27 @@ void dumpEntites(Game *game, i32 n) {
 
 i32 i = 0;
 void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
-    game->player.a = glm::vec3(0.0f, 0.0f, 0.0f);
+    Entity &player = game->entities[0];
+    player.a = glm::vec3(0.0f, 0.0f, 0.0f);
 
     if (kInput->rightPressed)
-        game->player.a += glm::vec3(100.0f, 0.0f, 0.0f);
+        player.a += glm::vec3(100.0f, 0.0f, 0.0f);
     if (kInput->leftPressed)
-        game->player.a += glm::vec3(-100.0f, 0.0f, 0.0f);
+        player.a += glm::vec3(-100.0f, 0.0f, 0.0f);
     if (kInput->upPressed)
-        game->player.a += glm::vec3(0.0f, 100.0f, 0.0f);
+        player.a += glm::vec3(0.0f, 100.0f, 0.0f);
     if (kInput->downPressed)
-        game->player.a += glm::vec3(0.0f, -100.0f, 0.0f);
+        player.a += glm::vec3(0.0f, -100.0f, 0.0f);
 
-    glm::vec3 p = game->player.p;
-    glm::vec3 v = game->player.v;
-    game->player.v = game->player.a * dt + v;
-    game->player.p = game->player.a * dt * dt * 0.5f + v * dt + p;
+    glm::vec3 p = player.p;
+    glm::vec3 v = player.v;
+    player.v = player.a * dt + v;
+    player.p = player.a * dt * dt * 0.5f + v * dt + p;
 
     // Poor mans friction
-    game->player.v -= game->player.v * 0.05f;
+    player.v -= player.v * 0.05f;
+
+    player.transformed = false;
     
     if (mInput->leftClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
@@ -56,9 +59,8 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
         }
     }
 
-    checkCollisions(game);
-
-    for (auto &e: game->entities) {
+    for (i32 i = 1; i < ENTITY_COUNT; ++i) {
+        Entity &e = game->entities[i];
         if(e.isAlive) {
             glm::vec3 p = e.p;
             glm::vec3 v = e.v;
@@ -67,7 +69,9 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             glm::vec3 g = glm::vec3(0.0f, 0.0f, 0.0f);
             e.v = (e.a + g) * dt + v;
             e.p = e.a * dt * dt * 0.5f + e.v * dt + p;
-            e.v -= e.v * 0.1f;
         }
+        e.transformed = false;
     }
+
+    checkCollisions(game);
 }

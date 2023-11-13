@@ -39,7 +39,9 @@ struct Entity {
     glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 p = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::mat4 model;
+    glm::mat4 model = glm::mat4(1.0f);
+    glm::vec3 vertices[4]{};
+    bool transformed = false;
     f32 scale = 1.0f;
     f32 r = 0.5f;
     glm::vec3 color;
