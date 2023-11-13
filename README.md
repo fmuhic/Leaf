@@ -6,9 +6,7 @@ Leaf is physics engine for 2D games.
 
 ```sh
 # OpenGL
-sudo apt install cmake pkg-config
 sudo apt install mesa-utils libglu1-mesa-dev freeglut3-dev mesa-common-dev
-sudo apt install libglew-dev libglfw3-dev libglm-dev
 sudo apt install libao-dev libmpg123-dev
 
 ```
