@@ -8,4 +8,9 @@ struct CollisionResult {
     glm::vec3 direction;
 };
 
+struct Projection {
+    f32 min;
+    f32 max;
+};
+
 void checkCollisions(Game *game);

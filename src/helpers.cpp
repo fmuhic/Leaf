@@ -1,4 +1,5 @@
 #include <random>
+#include <assert.h>
 #include "helpers.h"
 
 ui32 pickRand(ui32 min, ui32 max) {
@@ -11,5 +12,30 @@ ui32 pickRand(ui32 min, ui32 max) {
 
 void printVec(std::string name, glm::vec3 p) {
     std::cout << name << " (x=" << p.x << ", y=" << p.y << ", z=" << p.z << ")\n";
+}
+
+f32 max(f32 *xs, ui32 count) {
+    assert(count > 0);
+    f32 max = xs[0];
+    for (i32 i = 1; i < count; ++i) {
+        if (xs[i] > max)
+            max = xs[i];
+    }
+    return max;
+}
+
+f32 min(f32 *xs, ui32 count) {
+    assert(count > 0);
+    f32 min = xs[0];
+    for (i32 i = 1; i < count; ++i) {
+        if (xs[i] < min)
+            min = xs[i];
+    }
+    return min;
+}
+f32 min(f32 a, f32 b) {
+    if (a < b)
+        return a;
+    return b;
 }
 

@@ -66,7 +66,7 @@ int main() {
 
     Game *game = new Game{};
     game->entities[0].isAlive = true;
-    game->entities[0].type = EntityType::ENTITY_CIRCLE;
+    game->entities[0].type = EntityType::ENTITY_QUAD;
     game->entities[0].scale = 1.5f;
     game->entities[0].color = glm::vec3(0.3f, 0.7f, 0.1f);
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
