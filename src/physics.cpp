@@ -26,18 +26,22 @@ void transform(Entity *e) {
     }
 }
 
-CollisionResult checkCircleCircle(Entity *a, Entity *b) {
-    CollisionResult r{};
-    glm::vec3 d = b->p - a->p;
-    r.depth = a->r * a->scale + b->r * b->scale - glm::length(d);
-    if (r.depth > 0.0f) {
-        r.colided = true;
-        r.direction = glm::normalize(d);
+glm::vec3 findClosestPoint(glm::vec3 p, glm::vec3 *vertices, i32 verticeCount) {
+    assert(verticeCount > 0);
+    f32 dmin = glm::length(vertices[0] - p);
+    glm::vec3 res = vertices[0];
+    for (i32 i = 1; i < verticeCount; i++) {
+        f32 d = glm::length(vertices[i] - p);
+        if (d < dmin) {
+            dmin = d;
+            res = vertices[i];
+        }
     }
-    return r;
+
+    return res;
 }
 
-Projection project(glm::vec3 *vertices, i32 count, glm::vec3 axis) {
+Projection projectVertices(glm::vec3 *vertices, i32 count, glm::vec3 axis) {
     f32 min = std::numeric_limits<f32>::max();
     f32 max = std::numeric_limits<float>::min();
     for (i32 i = 0; i < count; i++) {
@@ -49,6 +53,70 @@ Projection project(glm::vec3 *vertices, i32 count, glm::vec3 axis) {
     return Projection { min, max };
 }
 
+Projection projectCircle(glm::vec3 *p, f32 r, glm::vec3 *axis) {
+    f32 center = glm::dot(*p, *axis);
+    return Projection { center - r, center + r };
+}
+
+CollisionResult checkCircleCircle(Entity *a, Entity *b) {
+    CollisionResult r{};
+    glm::vec3 d = b->p - a->p;
+    r.depth = a->r * a->scale + b->r * b->scale - glm::length(d);
+    if (r.depth > 0.0f) {
+        r.colided = true;
+        r.direction = glm::normalize(d);
+    }
+    return r;
+}
+
+CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
+    CollisionResult r{};
+    r.depth = std::numeric_limits<f32>::max();
+
+    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+        glm::vec3 edge = p->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - p->vertices[i];
+        glm::vec3 axis = glm::normalize(glm::vec3(-edge.y, edge.x, 0.0f));
+        Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
+        Projection cp = projectCircle(&c->p, c->r * c->scale, &axis);
+
+        if (pp.min > cp.max || cp.min > pp.max) {
+            r.colided = false;
+            return r;
+        }
+
+        f32 depth = min(pp.max - cp.min, cp.max - pp.min);
+        if (depth < r.depth) {
+            r.depth = depth;
+            r.direction = axis;
+        }
+    }
+    
+    glm::vec3 axis = glm::normalize(findClosestPoint(c->p, p->vertices, ENTITY_VERTEX_COUNT) - c->p);
+    Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
+    Projection cp = projectCircle(&c->p, c->r * c->scale, &axis);
+
+    if (pp.min > cp.max || cp.min > pp.max) {
+        r.colided = false;
+        return r;
+    }
+
+    f32 depth = min(pp.max - cp.min, cp.max - pp.min);
+    if (depth < r.depth) {
+        r.depth = depth;
+        r.direction = axis;
+    }
+
+
+    r.colided = true;
+    r.depth = r.depth / glm::length(r.direction);
+    r.direction = glm::normalize(r.direction);
+
+    glm::vec3 ab = c->p - p->p;
+    if (glm::dot(ab, r.direction) < 0.0f)
+        r.direction = -r.direction;
+
+    return r;
+}
 
 // Fixed vertices for now, until we get proper memory allocator
 CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
@@ -58,8 +126,8 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
         glm::vec3 edge = a->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - a->vertices[i];
         glm::vec3 axis = glm::vec3(-edge.y, edge.x, 0.0f);
-        Projection ap = project(a->vertices, ENTITY_VERTEX_COUNT, axis);
-        Projection bp = project(b->vertices, ENTITY_VERTEX_COUNT, axis);
+        Projection ap = projectVertices(a->vertices, ENTITY_VERTEX_COUNT, axis);
+        Projection bp = projectVertices(b->vertices, ENTITY_VERTEX_COUNT, axis);
 
         if (ap.min > bp.max || bp.min > ap.max) {
             r.colided = false;
@@ -76,8 +144,8 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
         glm::vec3 edge = b->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - b->vertices[i];
         glm::vec3 axis = glm::vec3(-edge.y, edge.x, 0.0f);
-        Projection ap = project(a->vertices, ENTITY_VERTEX_COUNT, axis);
-        Projection bp = project(b->vertices, ENTITY_VERTEX_COUNT, axis);
+        Projection ap = projectVertices(a->vertices, ENTITY_VERTEX_COUNT, axis);
+        Projection bp = projectVertices(b->vertices, ENTITY_VERTEX_COUNT, axis);
 
         if (ap.min > bp.max || bp.min > ap.max) {
             r.colided = false;
@@ -96,10 +164,8 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
     r.direction = glm::normalize(r.direction);
 
     glm::vec3 ab = b->p - a->p;
-
-    if (glm::dot(ab, r.direction) < 0.0f) {
+    if (glm::dot(ab, r.direction) < 0.0f)
         r.direction = -r.direction;
-    }
 
     return r;
 }
@@ -120,6 +186,12 @@ void checkCollisions(Game *game) {
             CollisionResult r{};
             if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_CIRCLE)
                 r = checkCircleCircle(&a, &b);
+            if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_CIRCLE)
+                r = checkPlygonCircle(&a, &b);
+            if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_QUAD) {
+                r = checkPlygonCircle(&b, &a);
+                r.direction *= -1;
+            }
             if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_QUAD)
                 r = checkPlygonPolygon(&a, &b);
 
