@@ -52,39 +52,42 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             EntityType type = (EntityType) pickRand(0, 1);
             Entity *e = &game->entities[eIndex];
             e->isAlive = true;
-            e->isStatic = (bool) pickRand(0, 2);
             e->type = type;
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
-            e->angle = glm::radians((f32) pickRand(0, 360));
-            e->scale = pickRand(10, 20) / 10.0f;
+            // e->angle = glm::radians((f32) pickRand(0, 360));
+            f32 xs = pickRand(10, 20) / 10.0f;
+            f32 ys = pickRand(10, 20) / 10.0f;
+            if (type == EntityType::ENTITY_CIRCLE)
+                e->scale = glm::vec3(xs, xs, 1.0f);
+            else if (type == EntityType::ENTITY_QUAD)
+                e->scale = glm::vec3(xs, ys, 1.0f);
             e->restitution = 0.66f; // Glass
-            if (e->isStatic) {
-                e->inverseMass = 0.0f;
-                e->color = glm::vec3(0.941, 0.953, 0.957);
-            }
-            else {
-                e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
-                if (type == EntityType::ENTITY_CIRCLE)
-                    e->inverseMass = 1.0f / e->r * e->r * e->scale * e->scale * PI;
-                else if (type == EntityType::ENTITY_QUAD)
-                    e->inverseMass = 1.0f / e->scale * e->scale;
-            }
-
+            e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
+            if (type == EntityType::ENTITY_CIRCLE)
+                e->inverseMass = 1.0f / e->r * e->r * e->scale.x * e->scale.x * PI;
+            else if (type == EntityType::ENTITY_QUAD)
+                e->inverseMass = 1.0f / e->scale.x * e->scale.y;
         }
     }
 
     for (i32 i = 1; i < ENTITY_COUNT; ++i) {
         Entity &e = game->entities[i];
-        if(e.isAlive) {
+
+        if(e.isAlive && !e.isStatic) {
             glm::vec3 p = e.p;
             glm::vec3 v = e.v;
 
-            // glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
-            glm::vec3 g = glm::vec3(0.0f, 0.0f, 0.0f);
+            glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
             e.v = (e.a + g) * dt + v;
             e.p = e.a * dt * dt * 0.5f + e.v * dt + p;
         }
         e.transformed = false;
+
+        if (e.p.x < -100.0f || e.p.y < -100.0f) {
+            // proper body reset
+            e.isAlive = false;
+            e.v = glm::vec3(0.0f, 0.0f, 0.0f);
+        }
     }
 
     checkCollisions(game);

@@ -44,7 +44,7 @@ struct Entity {
     glm::mat4 model = glm::mat4(1.0f);
     glm::vec3 vertices[ENTITY_VERTEX_COUNT]{};
     bool transformed = false;
-    f32 scale = 1.0f;
+    glm::vec3 scale = glm::vec3(1.0f, 1.0, 1.0f);
     f32 angle = 0.0f;
     f32 r = 0.5f;
     glm::vec3 color;

@@ -195,9 +195,14 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     scene->cameraFollow = game->entities[0].p;
+    // scene->camera = glm::lookAt(
+    //     glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 1.0f),
+    //     glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f),
+    //     glm::vec3(0.0f, 1.0f, 0.0f)
+    // );
     scene->camera = glm::lookAt(
-        glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 1.0f),
-        glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 

@@ -15,7 +15,7 @@ void transform(Entity *e) {
         e->model = glm::mat4(1.0f);
         e->model = glm::translate(e->model, e->p);
         e->model = glm::rotate(e->model, e->angle, glm::vec3(0.0f, 0.0f, 1.0f));
-        e->model = glm::scale(e->model, glm::vec3(e->scale, e->scale, 1.0f));
+        e->model = glm::scale(e->model, glm::vec3(e->scale.x, e->scale.y, e->scale.z));
 
         e->vertices[0] = e->model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
         e->vertices[1] = e->model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
@@ -61,7 +61,7 @@ Projection projectCircle(glm::vec3 *p, f32 r, glm::vec3 *axis) {
 CollisionResult checkCircleCircle(Entity *a, Entity *b) {
     CollisionResult r{};
     glm::vec3 d = b->p - a->p;
-    r.depth = a->r * a->scale + b->r * b->scale - glm::length(d);
+    r.depth = a->r * a->scale.x + b->r * b->scale.x - glm::length(d);
     if (r.depth > 0.0f) {
         r.colided = true;
         r.direction = glm::normalize(d);
@@ -77,7 +77,7 @@ CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
         glm::vec3 edge = p->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - p->vertices[i];
         glm::vec3 axis = glm::normalize(glm::vec3(-edge.y, edge.x, 0.0f));
         Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
-        Projection cp = projectCircle(&c->p, c->r * c->scale, &axis);
+        Projection cp = projectCircle(&c->p, c->r * c->scale.x, &axis);
 
         if (pp.min > cp.max || cp.min > pp.max) {
             r.colided = false;
@@ -93,7 +93,7 @@ CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
     
     glm::vec3 axis = glm::normalize(findClosestPoint(c->p, p->vertices, ENTITY_VERTEX_COUNT) - c->p);
     Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
-    Projection cp = projectCircle(&c->p, c->r * c->scale, &axis);
+    Projection cp = projectCircle(&c->p, c->r * c->scale.x, &axis);
 
     if (pp.min > cp.max || cp.min > pp.max) {
         r.colided = false;
