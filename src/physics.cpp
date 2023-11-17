@@ -106,7 +106,6 @@ CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
         r.direction = axis;
     }
 
-
     r.colided = true;
     r.depth = r.depth / glm::length(r.direction);
     r.direction = glm::normalize(r.direction);
@@ -125,7 +124,7 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
 
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
         glm::vec3 edge = a->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - a->vertices[i];
-        glm::vec3 axis = glm::vec3(-edge.y, edge.x, 0.0f);
+        glm::vec3 axis = glm::normalize(glm::vec3(-edge.y, edge.x, 0.0f));
         Projection ap = projectVertices(a->vertices, ENTITY_VERTEX_COUNT, axis);
         Projection bp = projectVertices(b->vertices, ENTITY_VERTEX_COUNT, axis);
 
@@ -143,7 +142,7 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
 
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
         glm::vec3 edge = b->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - b->vertices[i];
-        glm::vec3 axis = glm::vec3(-edge.y, edge.x, 0.0f);
+        glm::vec3 axis = glm::normalize(glm::vec3(-edge.y, edge.x, 0.0f));
         Projection ap = projectVertices(a->vertices, ENTITY_VERTEX_COUNT, axis);
         Projection bp = projectVertices(b->vertices, ENTITY_VERTEX_COUNT, axis);
 
@@ -160,14 +159,27 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
     }
 
     r.colided = true;
-    r.depth = r.depth / glm::length(r.direction);
-    r.direction = glm::normalize(r.direction);
 
     glm::vec3 ab = b->p - a->p;
     if (glm::dot(ab, r.direction) < 0.0f)
         r.direction = -r.direction;
 
     return r;
+}
+
+void resolveCollision(CollisionResult *r, Entity *a, Entity *b) {
+    if (!r->colided)
+        return;
+
+    f32 e = min(a->restitution, b->restitution);
+    glm::vec3 vba = b->v - a->v;
+    f32 j = -(1 + e) * glm::dot(vba, r->direction) / (1.0f / a->mass + 1.0f / b->mass);
+
+    a->v -= j / a->mass * r->direction;
+    b->v += j / b->mass * r->direction;
+
+    a->p -= 0.5f * r->depth * r->direction;
+    b->p += 0.5f * r->depth * r->direction;
 }
 
 void checkCollisions(Game *game) {
@@ -195,12 +207,7 @@ void checkCollisions(Game *game) {
             if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_QUAD)
                 r = checkPlygonPolygon(&a, &b);
 
-            if (r.colided) {
-                a.p -= 0.5f * r.depth * r.direction;
-                b.p += 0.5f * r.depth * r.direction;
-            }
+            resolveCollision(&r, &a, &b);
         }
     }
 }
-
-

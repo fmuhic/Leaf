@@ -1,9 +1,11 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
+
 #include "game.h"
 #include "helpers.h"
 #include "physics.h"
 #include "state.h"
+#include "const.h"
 
 using std::cout;
 
@@ -26,13 +28,13 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     player.a = glm::vec3(0.0f, 0.0f, 0.0f);
 
     if (kInput->rightPressed)
-        player.a += glm::vec3(100.0f, 0.0f, 0.0f);
+        player.a += glm::vec3(50.0f, 0.0f, 0.0f);
     if (kInput->leftPressed)
-        player.a += glm::vec3(-100.0f, 0.0f, 0.0f);
+        player.a += glm::vec3(-50.0f, 0.0f, 0.0f);
     if (kInput->upPressed)
-        player.a += glm::vec3(0.0f, 100.0f, 0.0f);
+        player.a += glm::vec3(0.0f, 50.0f, 0.0f);
     if (kInput->downPressed)
-        player.a += glm::vec3(0.0f, -100.0f, 0.0f);
+        player.a += glm::vec3(0.0f, -50.0f, 0.0f);
 
     glm::vec3 p = player.p;
     glm::vec3 v = player.v;
@@ -40,7 +42,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     player.p = player.a * dt * dt * 0.5f + v * dt + p;
 
     // Poor mans friction
-    player.v -= player.v * 0.05f;
+    // player.v -= player.v * 0.05f;
 
     player.transformed = false;
     
@@ -48,7 +50,6 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
             EntityType type = (EntityType) pickRand(0, 1);
-            // EntityType type = EntityType::ENTITY_QUAD;
             Entity *e = &game->entities[eIndex];
             e->isAlive = true;
             e->type = type;
@@ -56,6 +57,14 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             e->angle = glm::radians((f32) pickRand(0, 360));
             e->scale = pickRand(10, 20) / 10.0f;
             e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
+            e->restitution = 0.66f; // Glass
+
+            if (type == EntityType::ENTITY_CIRCLE) {
+                e->mass = e->r * e->r * e->scale * e->scale * PI;
+            }
+            else if (type == EntityType::ENTITY_QUAD) {
+                e->mass = e->scale * e->scale;
+            }
         }
     }
 

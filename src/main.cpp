@@ -69,6 +69,8 @@ int main() {
     game->entities[0].type = EntityType::ENTITY_QUAD;
     game->entities[0].scale = 1.5f;
     game->entities[0].color = glm::vec3(0.3f, 0.7f, 0.1f);
+    game->entities[0].mass = 1.5f * 1.5f;
+    game->entities[0].restitution = 0.66f;
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     f64 previous = glfwGetTime();

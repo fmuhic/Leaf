@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.13.0)
 
+
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,6 +13,7 @@ project(leaf VERSION 1.0)
 
 add_executable(leaf
     src/main.cpp
+    src/const.cpp
     src/loader.cpp
     src/renderer.cpp
     src/physics.cpp
