@@ -36,6 +36,7 @@ struct Scene {
 
 struct Entity {
     bool isAlive = false;
+    bool isStatic = false;
     EntityType type = EntityType::ENTITY_QUAD;
     glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -48,7 +49,7 @@ struct Entity {
     f32 r = 0.5f;
     glm::vec3 color;
 
-    f32 mass;
+    f32 inverseMass;
     f32 restitution;
 };
 

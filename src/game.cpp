@@ -52,19 +52,24 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             EntityType type = (EntityType) pickRand(0, 1);
             Entity *e = &game->entities[eIndex];
             e->isAlive = true;
+            e->isStatic = (bool) pickRand(0, 2);
             e->type = type;
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
             e->angle = glm::radians((f32) pickRand(0, 360));
             e->scale = pickRand(10, 20) / 10.0f;
-            e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
             e->restitution = 0.66f; // Glass
+            if (e->isStatic) {
+                e->inverseMass = 0.0f;
+                e->color = glm::vec3(0.941, 0.953, 0.957);
+            }
+            else {
+                e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
+                if (type == EntityType::ENTITY_CIRCLE)
+                    e->inverseMass = 1.0f / e->r * e->r * e->scale * e->scale * PI;
+                else if (type == EntityType::ENTITY_QUAD)
+                    e->inverseMass = 1.0f / e->scale * e->scale;
+            }
 
-            if (type == EntityType::ENTITY_CIRCLE) {
-                e->mass = e->r * e->r * e->scale * e->scale * PI;
-            }
-            else if (type == EntityType::ENTITY_QUAD) {
-                e->mass = e->scale * e->scale;
-            }
         }
     }
 

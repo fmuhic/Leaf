@@ -171,15 +171,25 @@ void resolveCollision(CollisionResult *r, Entity *a, Entity *b) {
     if (!r->colided)
         return;
 
-    f32 e = min(a->restitution, b->restitution);
     glm::vec3 vba = b->v - a->v;
-    f32 j = -(1 + e) * glm::dot(vba, r->direction) / (1.0f / a->mass + 1.0f / b->mass);
+    // if (glm::dot(vba, r->direction) > 0.0f)
+    //     return;
 
-    a->v -= j / a->mass * r->direction;
-    b->v += j / b->mass * r->direction;
+    f32 e = min(a->restitution, b->restitution);
+    f32 j = -(1 + e) * glm::dot(vba, r->direction) / (a->inverseMass + b->inverseMass);
 
-    a->p -= 0.5f * r->depth * r->direction;
-    b->p += 0.5f * r->depth * r->direction;
+    a->v -= j * a->inverseMass * r->direction;
+    b->v += j * b->inverseMass * r->direction;
+
+    if (a->isStatic)
+        b->p += r->depth * r->direction;
+    else if (b->isStatic)
+        a->p -= r->depth * r->direction;
+    else {
+        a->p -= 0.5f * r->depth * r->direction;
+        b->p += 0.5f * r->depth * r->direction;
+    }
+
 }
 
 void checkCollisions(Game *game) {
@@ -194,6 +204,9 @@ void checkCollisions(Game *game) {
             if (!b.isAlive)
                 continue;
             transform(&b);
+
+            if (a.isStatic && b.isStatic)
+                continue;
 
             CollisionResult r{};
             if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_CIRCLE)
