@@ -91,4 +91,5 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     }
 
     checkCollisions(game);
+    resolveCollisions(game);
 }

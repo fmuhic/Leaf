@@ -14,3 +14,4 @@ struct Projection {
 };
 
 void checkCollisions(Game *game);
+void resolveCollisions(Game *game);

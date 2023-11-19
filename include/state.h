@@ -5,6 +5,7 @@
 #include "types.h"
 
 #define ENTITY_COUNT 100
+#define MAX_COLISION_COUNT 10000
 #define ENTITY_VERTEX_COUNT 4
 #define COLOR_COUNT 14
 
@@ -53,9 +54,26 @@ struct Entity {
     f32 restitution;
 };
 
+struct CollisionManifold {
+    ui32 aIndex;
+    ui32 bIndex;
+    bool colided = false;
+    f32 depth = 0.0f;
+    glm::vec3 normal;
+    i32 contactPointsCount = 0;
+    glm::vec3 cp1;
+    glm::vec3 cp2;
+};
+
+struct Collisions {
+    i32 count = 0;
+    CollisionManifold manifolds[MAX_COLISION_COUNT];
+};
+
 struct Game {
     Entity entities[ENTITY_COUNT];  
     Entity player;
+    Collisions collisions;
     glm::vec3 colors[COLOR_COUNT] {
         glm::vec3(0.80f, 0.38f, 0.33f),
         glm::vec3(0.93f, 0.44f, 0.39f),

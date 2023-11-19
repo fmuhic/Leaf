@@ -58,19 +58,19 @@ Projection projectCircle(glm::vec3 *p, f32 r, glm::vec3 *axis) {
     return Projection { center - r, center + r };
 }
 
-CollisionResult checkCircleCircle(Entity *a, Entity *b) {
-    CollisionResult r{};
+CollisionManifold checkCircleCircle(Entity *a, Entity *b) {
+    CollisionManifold r{};
     glm::vec3 d = b->p - a->p;
     r.depth = a->r * a->scale.x + b->r * b->scale.x - glm::length(d);
     if (r.depth > 0.0f) {
         r.colided = true;
-        r.direction = glm::normalize(d);
+        r.normal = glm::normalize(d);
     }
     return r;
 }
 
-CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
-    CollisionResult r{};
+CollisionManifold checkPlygonCircle(Entity *p, Entity *c) {
+    CollisionManifold r{};
     r.depth = std::numeric_limits<f32>::max();
 
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
@@ -87,7 +87,7 @@ CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
         f32 depth = min(pp.max - cp.min, cp.max - pp.min);
         if (depth < r.depth) {
             r.depth = depth;
-            r.direction = axis;
+            r.normal = axis;
         }
     }
     
@@ -103,23 +103,23 @@ CollisionResult checkPlygonCircle(Entity *p, Entity *c) {
     f32 depth = min(pp.max - cp.min, cp.max - pp.min);
     if (depth < r.depth) {
         r.depth = depth;
-        r.direction = axis;
+        r.normal = axis;
     }
 
     r.colided = true;
-    r.depth = r.depth / glm::length(r.direction);
-    r.direction = glm::normalize(r.direction);
+    r.depth = r.depth / glm::length(r.normal);
+    r.normal = glm::normalize(r.normal);
 
     glm::vec3 ab = c->p - p->p;
-    if (glm::dot(ab, r.direction) < 0.0f)
-        r.direction = -r.direction;
+    if (glm::dot(ab, r.normal) < 0.0f)
+        r.normal = -r.normal;
 
     return r;
 }
 
 // Fixed vertices for now, until we get proper memory allocator
-CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
-    CollisionResult r{};
+CollisionManifold checkPlygonPolygon(Entity *a, Entity *b) {
+    CollisionManifold r{};
     r.depth = std::numeric_limits<f32>::max();
 
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
@@ -136,7 +136,7 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
         f32 depth = min(ap.max - bp.min, bp.max - ap.min);
         if (depth < r.depth) {
             r.depth = depth;
-            r.direction = axis;
+            r.normal = axis;
         }
     }
 
@@ -154,45 +154,45 @@ CollisionResult checkPlygonPolygon(Entity *a, Entity *b) {
         f32 depth = min(ap.max - bp.min, bp.max - ap.min);
         if (depth < r.depth) {
             r.depth = depth;
-            r.direction = axis;
+            r.normal = axis;
         }
     }
 
     r.colided = true;
 
     glm::vec3 ab = b->p - a->p;
-    if (glm::dot(ab, r.direction) < 0.0f)
-        r.direction = -r.direction;
+    if (glm::dot(ab, r.normal) < 0.0f)
+        r.normal = -r.normal;
 
     return r;
 }
 
-void resolveCollision(CollisionResult *r, Entity *a, Entity *b) {
-    if (!r->colided)
+void resolve(CollisionManifold *m, Entity *a, Entity *b) {
+    if (!m->colided)
         return;
 
     glm::vec3 vba = b->v - a->v;
-    // if (glm::dot(vba, r->direction) > 0.0f)
+    // if (glm::dot(vba-> r->normal) > 0.0f)
     //     return;
 
     f32 e = min(a->restitution, b->restitution);
-    f32 j = -(1 + e) * glm::dot(vba, r->direction) / (a->inverseMass + b->inverseMass);
+    f32 j = -(1 + e) * glm::dot(vba, m->normal) / (a->inverseMass + b->inverseMass);
 
-    a->v -= j * a->inverseMass * r->direction;
-    b->v += j * b->inverseMass * r->direction;
+    a->v -= j * a->inverseMass * m->normal;
+    b->v += j * b->inverseMass * m->normal;
 
     if (a->isStatic)
-        b->p += r->depth * r->direction;
+        b->p += m->depth * m->normal;
     else if (b->isStatic)
-        a->p -= r->depth * r->direction;
+        a->p -= m->depth * m->normal;
     else {
-        a->p -= 0.5f * r->depth * r->direction;
-        b->p += 0.5f * r->depth * r->direction;
+        a->p -= 0.5f * m->depth * m->normal;
+        b->p += 0.5f * m->depth * m->normal;
     }
-
 }
 
 void checkCollisions(Game *game) {
+    game->collisions.count = 0;
     for (i32 i = 0; i < ENTITY_COUNT - 1; ++i) {
         Entity &a = game->entities[i];
         if (!a.isAlive)
@@ -208,19 +208,33 @@ void checkCollisions(Game *game) {
             if (a.isStatic && b.isStatic)
                 continue;
 
-            CollisionResult r{};
+            CollisionManifold cm{};
+            cm.aIndex = i;
+            cm.bIndex = j;
+
             if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_CIRCLE)
-                r = checkCircleCircle(&a, &b);
+                cm = checkCircleCircle(&a, &b);
             if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_CIRCLE)
-                r = checkPlygonCircle(&a, &b);
+                cm = checkPlygonCircle(&a, &b);
             if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_QUAD) {
-                r = checkPlygonCircle(&b, &a);
-                r.direction *= -1;
+                cm = checkPlygonCircle(&b, &a);
+                cm.normal *= -1;
             }
             if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_QUAD)
-                r = checkPlygonPolygon(&a, &b);
+                cm = checkPlygonPolygon(&a, &b);
 
-            resolveCollision(&r, &a, &b);
+            game->collisions.manifolds[++game->collisions.count] = cm;
+
+            // resolveCollision(&cm, game->entities);
         }
+    }
+}
+
+void resolveCollisions(Game *game) {
+    for (i32 i = 0; i < game->collisions.count; i++) {
+        CollisionManifold *m = &game->collisions.manifolds[i];
+        Entity *a = &game->entities[m->aIndex];
+        Entity *b = &game->entities[m->bIndex];
+        resolve(m, a, b);
     }
 }
