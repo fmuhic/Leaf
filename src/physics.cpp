@@ -167,9 +167,12 @@ CollisionManifold checkPlygonPolygon(Entity *a, Entity *b) {
     return r;
 }
 
-void resolve(CollisionManifold *m, Entity *a, Entity *b) {
+void resolve(CollisionManifold *m) {
     if (!m->colided)
         return;
+
+    Entity *a = m->a;
+    Entity *b = m->b;
 
     glm::vec3 vba = b->v - a->v;
     // if (glm::dot(vba-> r->normal) > 0.0f)
@@ -209,9 +212,6 @@ void checkCollisions(Game *game) {
                 continue;
 
             CollisionManifold cm{};
-            cm.aIndex = i;
-            cm.bIndex = j;
-
             if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_CIRCLE)
                 cm = checkCircleCircle(&a, &b);
             if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_CIRCLE)
@@ -223,7 +223,9 @@ void checkCollisions(Game *game) {
             if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_QUAD)
                 cm = checkPlygonPolygon(&a, &b);
 
-            game->collisions.manifolds[++game->collisions.count] = cm;
+            cm.a = &game->entities[i];
+            cm.b = &game->entities[j];
+            game->collisions.manifolds[game->collisions.count++] = cm;
 
             // resolveCollision(&cm, game->entities);
         }
@@ -233,8 +235,6 @@ void checkCollisions(Game *game) {
 void resolveCollisions(Game *game) {
     for (i32 i = 0; i < game->collisions.count; i++) {
         CollisionManifold *m = &game->collisions.manifolds[i];
-        Entity *a = &game->entities[m->aIndex];
-        Entity *b = &game->entities[m->bIndex];
-        resolve(m, a, b);
+        resolve(m);
     }
 }

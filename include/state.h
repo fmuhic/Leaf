@@ -55,8 +55,8 @@ struct Entity {
 };
 
 struct CollisionManifold {
-    ui32 aIndex;
-    ui32 bIndex;
+    Entity *a;
+    Entity *b;
     bool colided = false;
     f32 depth = 0.0f;
     glm::vec3 normal;
