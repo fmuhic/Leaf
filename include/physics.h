@@ -13,5 +13,10 @@ struct Projection {
     f32 max;
 };
 
+struct PointLineResult {
+    glm::vec3 cp;
+    f32 distSq;
+};
+
 void checkCollisions(Game *game);
 void resolveCollisions(Game *game);

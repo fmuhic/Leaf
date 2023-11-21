@@ -7,6 +7,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/geometric.hpp"
 #include "helpers.h"
+#include "math.h"
 #include "physics.h"
 #include "state.h"
 
@@ -26,7 +27,7 @@ void transform(Entity *e) {
     }
 }
 
-glm::vec3 findClosestPoint(glm::vec3 p, glm::vec3 *vertices, i32 verticeCount) {
+glm::vec3 findClosestVertice(glm::vec3 p, glm::vec3 *vertices, i32 verticeCount) {
     assert(verticeCount > 0);
     f32 dmin = glm::length(vertices[0] - p);
     glm::vec3 res = vertices[0];
@@ -39,6 +40,26 @@ glm::vec3 findClosestPoint(glm::vec3 p, glm::vec3 *vertices, i32 verticeCount) {
     }
 
     return res;
+}
+
+PointLineResult findClosestPointToLine(glm::vec3 *p, glm::vec3 *a, glm::vec3 *b) {
+    glm::vec3 ab = *b - *a;
+    glm::vec3 ap = *p - *a;
+    f32 pr = glm::dot(ap, ab);
+    f32 abLengthSq = lengthSq(&ab);
+    f32 abSegSq = pr / abLengthSq;
+
+    PointLineResult r{};
+    if (abSegSq <= 0.0f)
+        r.cp = *a;
+    else if (abSegSq >= 1.0f)
+        r.cp = *b;
+    else
+        r.cp = *a + ab * abSegSq;
+
+    r.distSq = distanceSq(p, &r.cp);
+
+    return r;
 }
 
 Projection projectVertices(glm::vec3 *vertices, i32 count, glm::vec3 axis) {
@@ -91,7 +112,7 @@ CollisionManifold checkPlygonCircle(Entity *p, Entity *c) {
         }
     }
     
-    glm::vec3 axis = glm::normalize(findClosestPoint(c->p, p->vertices, ENTITY_VERTEX_COUNT) - c->p);
+    glm::vec3 axis = glm::normalize(findClosestVertice(c->p, p->vertices, ENTITY_VERTEX_COUNT) - c->p);
     Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
     Projection cp = projectCircle(&c->p, c->r * c->scale.x, &axis);
 
@@ -185,9 +206,27 @@ void findCircleCircleContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
     m->cp1 = a->p + n * a->r * a->scale;
 }
 
+void findPolygonCircleContactPoints(Entity *p, Entity *c, CollisionManifold *m) {
+    m->contactPointsCount = 1;
+    f32 minSqDistance = std::numeric_limits<f32>::max();
+    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+        glm::vec3 a = p->vertices[i];
+        glm::vec3 b = p->vertices[(i + 1) % ENTITY_VERTEX_COUNT];
+        PointLineResult res = findClosestPointToLine(&c->p, &a, &b);
+        if (res.distSq < minSqDistance) {
+            minSqDistance = res.distSq;
+            m->cp1 = res.cp;
+        }
+    }
+}
+
 void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
     if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_CIRCLE)
         findCircleCircleContactPoints(a, b, m);
+    else if (a->type == EntityType::ENTITY_QUAD && b->type == EntityType::ENTITY_CIRCLE)
+        findPolygonCircleContactPoints(a, b, m);
+    else if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_QUAD)
+        findPolygonCircleContactPoints(b, a, m);
 }
 
 void resolve(CollisionManifold *m) {
