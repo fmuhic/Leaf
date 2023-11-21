@@ -167,12 +167,38 @@ CollisionManifold checkPlygonPolygon(Entity *a, Entity *b) {
     return r;
 }
 
+void separateEntities(Entity *a, Entity *b, CollisionManifold *m) {
+    if (a->isStatic)
+        b->p += m->depth * m->normal;
+    else if (b->isStatic)
+        a->p -= m->depth * m->normal;
+    else {
+        a->p -= 0.5f * m->depth * m->normal;
+        b->p += 0.5f * m->depth * m->normal;
+    }
+}
+
+void findCircleCircleContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
+    glm::vec3 ab = b->p - a->p;
+    glm::vec3 n = normalize(ab);
+    m->contactPointsCount = 1;
+    m->cp1 = a->p + n * a->r * a->scale;
+}
+
+void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
+    if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_CIRCLE)
+        findCircleCircleContactPoints(a, b, m);
+}
+
 void resolve(CollisionManifold *m) {
     if (!m->colided)
         return;
 
     Entity *a = m->a;
     Entity *b = m->b;
+
+    separateEntities(a, b, m);
+    findContactPoints(a, b, m);
 
     glm::vec3 vba = b->v - a->v;
     // if (glm::dot(vba-> r->normal) > 0.0f)
@@ -183,15 +209,6 @@ void resolve(CollisionManifold *m) {
 
     a->v -= j * a->inverseMass * m->normal;
     b->v += j * b->inverseMass * m->normal;
-
-    if (a->isStatic)
-        b->p += m->depth * m->normal;
-    else if (b->isStatic)
-        a->p -= m->depth * m->normal;
-    else {
-        a->p -= 0.5f * m->depth * m->normal;
-        b->p += 0.5f * m->depth * m->normal;
-    }
 }
 
 void checkCollisions(Game *game) {
