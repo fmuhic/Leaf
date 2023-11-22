@@ -54,7 +54,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             e->isAlive = true;
             e->type = type;
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
-            // e->angle = glm::radians((f32) pickRand(0, 360));
+            e->angle = glm::radians((f32) pickRand(0, 360));
             f32 xs = pickRand(10, 20) / 10.0f;
             f32 ys = pickRand(10, 20) / 10.0f;
             if (type == EntityType::ENTITY_CIRCLE)

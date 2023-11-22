@@ -11,20 +11,47 @@
 #include "physics.h"
 #include "state.h"
 
-void transform(Entity *e) {
-    if (!e->transformed) {
-        e->model = glm::mat4(1.0f);
-        e->model = glm::translate(e->model, e->p);
-        e->model = glm::rotate(e->model, e->angle, glm::vec3(0.0f, 0.0f, 1.0f));
-        e->model = glm::scale(e->model, glm::vec3(e->scale.x, e->scale.y, e->scale.z));
-
-        e->vertices[0] = e->model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-        e->vertices[1] = e->model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-        e->vertices[2] = e->model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-        e->vertices[3] = e->model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-
-        e->transformed = true;
+void updateAABB(Entity *e) {
+    if (e->type == EntityType::ENTITY_CIRCLE) {
+        e->aabb.bottomLeft = e->p - e->r * e->scale;
+        e->aabb.topRight = e->p + e->r * e->scale;
+        e->aabb.topRight.z = 0.0f;
+        e->aabb.bottomLeft.z = 0.0f;
     }
+    else if (e->type == EntityType::ENTITY_QUAD) {
+        f32 xMin = e->vertices[0].x;
+        f32 xMax = e->vertices[0].x;
+        f32 yMin = e->vertices[0].y;
+        f32 yMax = e->vertices[0].y;
+
+        for (i32 i = 1; i < ENTITY_VERTEX_COUNT; i++) {
+            glm::vec3 v = e->vertices[i];
+            if (v.x < xMin) xMin = v.x;
+            if (v.x > xMax) xMax = v.x;
+            if (v.y < yMin) yMin = v.y;
+            if (v.y > yMax) yMax = v.y;
+        }
+
+        e->aabb.bottomLeft = glm::vec3(xMin, yMin, 0.0f);
+        e->aabb.topRight = glm::vec3(xMax, yMax, 0.0f);
+    }
+}
+
+void transform(Entity *e) {
+    if (e->transformed)
+        return;
+
+    e->model = glm::mat4(1.0f);
+    e->model = glm::translate(e->model, e->p);
+    e->model = glm::rotate(e->model, e->angle, glm::vec3(0.0f, 0.0f, 1.0f));
+    e->model = glm::scale(e->model, glm::vec3(e->scale.x, e->scale.y, e->scale.z));
+
+    e->vertices[0] = e->model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
+    e->vertices[1] = e->model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
+    e->vertices[2] = e->model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
+    e->vertices[3] = e->model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
+
+    updateAABB(e);
 }
 
 glm::vec3 findClosestVertice(glm::vec3 p, glm::vec3 *vertices, i32 verticeCount) {
@@ -250,6 +277,11 @@ void resolve(CollisionManifold *m) {
     b->v += j * b->inverseMass * m->normal;
 }
 
+bool AABBcolliding(AABB *a, AABB *b) {
+    return (a->topRight.x >= b->bottomLeft.x || a->bottomLeft.x <= b->topRight.x) &&
+        (a->topRight.y >= b->bottomLeft.y || a->bottomLeft.y <= b->topRight.y);
+}
+
 void checkCollisions(Game *game) {
     game->collisions.count = 0;
     for (i32 i = 0; i < ENTITY_COUNT - 1; ++i) {
@@ -265,6 +297,9 @@ void checkCollisions(Game *game) {
             transform(&b);
 
             if (a.isStatic && b.isStatic)
+                continue;
+
+            if (!AABBcolliding(&a.aabb, &b.aabb))
                 continue;
 
             CollisionManifold cm{};
