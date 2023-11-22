@@ -247,6 +247,61 @@ void findPolygonCircleContactPoints(Entity *p, Entity *c, CollisionManifold *m) 
     }
 }
 
+template <typename T>
+bool abs(T x) {
+    if (x >= 0)
+        return x;
+    return -x;
+}
+
+bool closeTo(f32 a, f32 b, f32 delta) {
+    return abs(a - b) < delta;
+}
+
+bool closeTo(glm::vec3 a, glm::vec3 b, f32 delta) {
+    return closeTo(a.x, b.x, delta) && closeTo(a.y, b.y, delta);
+}
+
+
+void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
+    f32 delta = 0.0005f;
+    f32 minSqDistance = std::numeric_limits<f32>::max();
+    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+        glm::vec3 v = a->vertices[i];
+        for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
+            PointLineResult res = findClosestPointToLine(&v, &b->vertices[j], &b->vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
+            if (closeTo(res.distSq, minSqDistance, delta)) {
+                if (!closeTo(res.cp, m->cp1, delta)) {
+                    m->cp2 = res.cp;
+                    m->contactPointsCount = 2;
+                }
+            }
+            else if (res.distSq < minSqDistance) {
+                minSqDistance = res.distSq;
+                m->cp1 = res.cp;
+                m->contactPointsCount = 1;
+            }
+        }
+    }
+    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+        glm::vec3 v = b->vertices[i];
+        for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
+            PointLineResult res = findClosestPointToLine(&v, &a->vertices[j], &a->vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
+            if (closeTo(res.distSq, minSqDistance, delta)) {
+                if (!closeTo(res.cp, m->cp1, delta)) {
+                    m->cp2 = res.cp;
+                    m->contactPointsCount = 2;
+                }
+            }
+            else if (res.distSq < minSqDistance) {
+                minSqDistance = res.distSq;
+                m->cp1 = res.cp;
+                m->contactPointsCount = 1;
+            }
+        }
+    }
+}
+
 void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
     if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_CIRCLE)
         findCircleCircleContactPoints(a, b, m);
@@ -254,6 +309,8 @@ void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
         findPolygonCircleContactPoints(a, b, m);
     else if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_QUAD)
         findPolygonCircleContactPoints(b, a, m);
+    else if (a->type == EntityType::ENTITY_QUAD && b->type == EntityType::ENTITY_QUAD) 
+        findPolygonPolygonContactPoints(b, a, m);
 }
 
 void resolve(CollisionManifold *m) {
@@ -278,8 +335,10 @@ void resolve(CollisionManifold *m) {
 }
 
 bool AABBcolliding(AABB *a, AABB *b) {
-    return (a->topRight.x >= b->bottomLeft.x || a->bottomLeft.x <= b->topRight.x) &&
-        (a->topRight.y >= b->bottomLeft.y || a->bottomLeft.y <= b->topRight.y);
+    if (a->topRight.x < b->bottomLeft.x || a->bottomLeft.x > b->topRight.x ||
+        a->topRight.y < b->bottomLeft.y || a->bottomLeft.y > b->topRight.y)
+            return false;
+    return true;
 }
 
 void checkCollisions(Game *game) {
@@ -317,8 +376,6 @@ void checkCollisions(Game *game) {
             cm.a = &game->entities[i];
             cm.b = &game->entities[j];
             game->collisions.manifolds[game->collisions.count++] = cm;
-
-            // resolveCollision(&cm, game->entities);
         }
     }
 }

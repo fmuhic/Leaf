@@ -20,7 +20,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define GAME_UPDATE_INTERVAL_SEC 0.001f
+#define GAME_UPDATE_INTERVAL_SEC 0.002f
 
 using std::string;
 using std::cout;
@@ -99,7 +99,9 @@ int main() {
             kInput = {};
             processKeyboardInput(window);
             processMouseInput(window);
+            f64 gameUpdateStart = glfwGetTime();
             updateGame(GAME_UPDATE_INTERVAL_SEC, game, &kInput, &mInput);
+            cout << "Update step " << (glfwGetTime() - gameUpdateStart) * 1000.0f << endl;
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
