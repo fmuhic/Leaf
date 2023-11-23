@@ -256,15 +256,8 @@ void findPolygonCircleContactPoints(Entity *p, Entity *c, CollisionManifold *m) 
     }
 }
 
-template <typename T>
-bool abs(T x) {
-    if (x >= 0)
-        return x;
-    return -x;
-}
-
 bool closeTo(f32 a, f32 b, f32 delta) {
-    return abs(a - b) < delta;
+    return fabs(a - b) < delta;
 }
 
 bool closeTo(glm::vec3 a, glm::vec3 b, f32 delta) {
@@ -272,7 +265,7 @@ bool closeTo(glm::vec3 a, glm::vec3 b, f32 delta) {
 }
 
 void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
-    f32 delta = 0.005f;
+    f32 delta = 0.0005f;
     f32 minSqDistance = std::numeric_limits<f32>::max();
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
         glm::vec3 v = a->vertices[i];
