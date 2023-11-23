@@ -9,3 +9,7 @@ f32 distanceSq(glm::vec3 *a, glm::vec3 *b) {
     f32 dy = a->y - b->y;
     return dx * dx + dy * dy;
 }
+
+f32 cross(glm::vec3 *a, glm::vec3 *b) {
+    return (a->x * b->y) - (a->y * b->x);
+}

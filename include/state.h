@@ -46,6 +46,7 @@ struct Entity {
     EntityType type = EntityType::ENTITY_QUAD;
     glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
+    f32 omega = 0.0f;
     glm::vec3 p = glm::vec3(0.0f, 0.0f, 0.0f);
     AABB aabb;
     glm::mat4 model = glm::mat4(1.0f);

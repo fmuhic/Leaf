@@ -317,6 +317,14 @@ void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
 void resolve(CollisionManifold *m) {
     if (!m->colided)
         return;
+    // glm::vec3 vba = b->v - a->v;
+    // // if (glm::dot(vba-> r->normal) > 0.0f)
+    // //     return;
+    //
+    // f32 j = -(1 + e) * glm::dot(vba, m->normal) / (a->inverseMass + b->inverseMass);
+    //
+    // a->v -= j * a->inverseMass * m->normal;
+    // b->v += j * b->inverseMass * m->normal;
 
     Entity *a = m->a;
     Entity *b = m->b;
@@ -324,15 +332,48 @@ void resolve(CollisionManifold *m) {
     separateEntities(a, b, m);
     findContactPoints(a, b, m);
 
-    glm::vec3 vba = b->v - a->v;
-    // if (glm::dot(vba-> r->normal) > 0.0f)
-    //     return;
-
     f32 e = min(a->restitution, b->restitution);
-    f32 j = -(1 + e) * glm::dot(vba, m->normal) / (a->inverseMass + b->inverseMass);
 
-    a->v -= j * a->inverseMass * m->normal;
-    b->v += j * b->inverseMass * m->normal;
+    glm::vec3 cp[]{ m->cp1, m->cp2 };
+    glm::vec3 impulses[m->contactPointsCount];
+
+    for (i32 i = 0; i < m->contactPointsCount; i++) {
+        glm::vec3 pa = cp[i] - a->p;
+        glm::vec3 pb = cp[i] - b->p;
+
+        glm::vec3 pap = glm::vec3(-pa.y, pa.x, 0.0f);
+        glm::vec3 pbp = glm::vec3(-pb.y, pb.x, 0.0f);
+
+        glm::vec3 omegaA = a->omega * pap;
+        glm::vec3 omegaB = b->omega * pbp;
+
+        glm::vec3 va = a->v + omegaA; 
+        glm::vec3 vb = b->v + omegaB; 
+
+        glm::vec3 vRelative = vb - va;
+
+        f32 contactVelocityLen = glm::dot(vRelative, m->normal);
+
+        if (contactVelocityLen > 0.0f)
+            continue;
+
+        f32 j = -(1 + e) * contactVelocityLen /
+            (a->inverseMass + b->inverseMass + pow(glm::dot(pap, m->normal), 2) * a->inverseInertia + pow(glm::dot(pbp, m->normal), 2) * b->inverseInertia);
+
+        j /= (f32) m->contactPointsCount;
+
+        impulses[i] = j * m->normal;
+    }
+
+    for (i32 i = 0; i < m->contactPointsCount; i++) {
+        glm::vec3 pa = cp[i] - a->p;
+        glm::vec3 pb = cp[i] - b->p;
+
+        a->v -= impulses[i] * a->inverseMass;
+        a->omega -= cross(&pa, &impulses[i]) * a->inverseInertia;
+        b->v += impulses[i] * b->inverseMass;
+        b->omega += cross(&pb, &impulses[i]) * b->inverseInertia;
+    }
 }
 
 bool AABBcolliding(AABB *a, AABB *b) {
