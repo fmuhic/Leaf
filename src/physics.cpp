@@ -1,4 +1,5 @@
 #include <cmath>
+#include <assert.h>
 #include <limits>
 #include <glm/ext/matrix_transform.hpp>
 #include <iostream>
@@ -11,12 +12,20 @@
 #include "physics.h"
 #include "state.h"
 
+f32 calculateMomentOfInertia(Entity *e) {
+    if (e->type == EntityType::ENTITY_CIRCLE)
+        return 0.5f * e->mass * e->r * e->r;
+    else if (e->type == EntityType::ENTITY_QUAD)
+        return (1.0f / 12.0f) * e->mass * (e->scale.x * e->scale.x + e->scale.y * e->scale.y);
+
+    assert("Invalid entity type");
+    return -1.0f;
+}
+
 void updateAABB(Entity *e) {
     if (e->type == EntityType::ENTITY_CIRCLE) {
-        e->aabb.bottomLeft = e->p - e->r * e->scale;
-        e->aabb.topRight = e->p + e->r * e->scale;
-        e->aabb.topRight.z = 0.0f;
-        e->aabb.bottomLeft.z = 0.0f;
+        e->aabb.bottomLeft = e->p - e->r;
+        e->aabb.topRight = e->p + e->r;
     }
     else if (e->type == EntityType::ENTITY_QUAD) {
         f32 xMin = e->vertices[0].x;
@@ -109,7 +118,7 @@ Projection projectCircle(glm::vec3 *p, f32 r, glm::vec3 *axis) {
 CollisionManifold checkCircleCircle(Entity *a, Entity *b) {
     CollisionManifold r{};
     glm::vec3 d = b->p - a->p;
-    r.depth = a->r * a->scale.x + b->r * b->scale.x - glm::length(d);
+    r.depth = a->r + b->r - glm::length(d);
     if (r.depth > 0.0f) {
         r.colided = true;
         r.normal = glm::normalize(d);
@@ -125,7 +134,7 @@ CollisionManifold checkPlygonCircle(Entity *p, Entity *c) {
         glm::vec3 edge = p->vertices[(i + 1) % ENTITY_VERTEX_COUNT] - p->vertices[i];
         glm::vec3 axis = glm::normalize(glm::vec3(-edge.y, edge.x, 0.0f));
         Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
-        Projection cp = projectCircle(&c->p, c->r * c->scale.x, &axis);
+        Projection cp = projectCircle(&c->p, c->r, &axis);
 
         if (pp.min > cp.max || cp.min > pp.max) {
             r.colided = false;
@@ -141,7 +150,7 @@ CollisionManifold checkPlygonCircle(Entity *p, Entity *c) {
     
     glm::vec3 axis = glm::normalize(findClosestVertice(c->p, p->vertices, ENTITY_VERTEX_COUNT) - c->p);
     Projection pp = projectVertices(p->vertices, ENTITY_VERTEX_COUNT, axis);
-    Projection cp = projectCircle(&c->p, c->r * c->scale.x, &axis);
+    Projection cp = projectCircle(&c->p, c->r, &axis);
 
     if (pp.min > cp.max || cp.min > pp.max) {
         r.colided = false;
@@ -230,7 +239,7 @@ void findCircleCircleContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
     glm::vec3 ab = b->p - a->p;
     glm::vec3 n = normalize(ab);
     m->contactPointsCount = 1;
-    m->cp1 = a->p + n * a->r * a->scale;
+    m->cp1 = a->p + n * a->r;
 }
 
 void findPolygonCircleContactPoints(Entity *p, Entity *c, CollisionManifold *m) {
@@ -262,9 +271,8 @@ bool closeTo(glm::vec3 a, glm::vec3 b, f32 delta) {
     return closeTo(a.x, b.x, delta) && closeTo(a.y, b.y, delta);
 }
 
-
 void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
-    f32 delta = 0.0005f;
+    f32 delta = 0.005f;
     f32 minSqDistance = std::numeric_limits<f32>::max();
     for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
         glm::vec3 v = a->vertices[i];

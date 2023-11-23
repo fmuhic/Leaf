@@ -20,3 +20,4 @@ struct PointLineResult {
 
 void checkCollisions(Game *game);
 void resolveCollisions(Game *game);
+f32 calculateMomentOfInertia(Entity *e);

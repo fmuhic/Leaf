@@ -56,7 +56,10 @@ struct Entity {
     f32 r = 0.5f;
     glm::vec3 color;
 
+    f32 mass;
     f32 inverseMass;
+    f32 inertia;
+    f32 inverseInertia;
     f32 restitution;
 };
 

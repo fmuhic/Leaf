@@ -85,6 +85,19 @@ int main() {
     game->entities[1].color = glm::vec3(0.941, 0.953, 0.957);
     game->entities[1].inverseMass = 0.0f;
     game->entities[1].restitution = 0.5;
+
+    // Slope
+    game->entities[2].isAlive = true;
+    game->entities[2].isStatic = true;
+    game->entities[2].p = glm::vec3();
+    game->entities[2].type = EntityType::ENTITY_QUAD;
+    game->entities[2].p = glm::vec3(-10.0f, 3.0f, 0.0f);
+    game->entities[2].scale = glm::vec3(10.0f, 1.0f, 1.0f);
+    game->entities[2].angle = glm::radians((f32) -15);
+    game->entities[2].color = glm::vec3(0.941, 0.953, 0.957);
+    game->entities[2].inverseMass = 0.0f;
+    game->entities[2].restitution = 0.5;
+
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     f64 previous = glfwGetTime();
@@ -101,7 +114,7 @@ int main() {
             processMouseInput(window);
             f64 gameUpdateStart = glfwGetTime();
             updateGame(GAME_UPDATE_INTERVAL_SEC, game, &kInput, &mInput);
-            cout << "Update step " << (glfwGetTime() - gameUpdateStart) * 1000.0f << endl;
+            // cout << "Update step " << (glfwGetTime() - gameUpdateStart) * 1000.0f << endl;
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 

@@ -50,6 +50,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
             EntityType type = (EntityType) pickRand(0, 1);
+            // EntityType type = EntityType::ENTITY_CIRCLE;
             Entity *e = &game->entities[eIndex];
             e->isAlive = true;
             e->type = type;
@@ -57,16 +58,30 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             // e->angle = glm::radians((f32) pickRand(0, 360));
             f32 xs = pickRand(10, 20) / 10.0f;
             f32 ys = pickRand(10, 20) / 10.0f;
-            if (type == EntityType::ENTITY_CIRCLE)
+            if (type == EntityType::ENTITY_CIRCLE) {
                 e->scale = glm::vec3(xs, xs, 1.0f);
+                e->r = 0.5f * xs;
+            }
             else if (type == EntityType::ENTITY_QUAD)
                 e->scale = glm::vec3(xs, ys, 1.0f);
             e->restitution = 0.66f; // Glass
             e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
-            if (type == EntityType::ENTITY_CIRCLE)
-                e->inverseMass = 1.0f / e->r * e->r * e->scale.x * e->scale.x * PI;
-            else if (type == EntityType::ENTITY_QUAD)
-                e->inverseMass = 1.0f / e->scale.x * e->scale.y;
+            if (type == EntityType::ENTITY_CIRCLE) {
+                e->mass = e->r * e->r * PI;
+            }
+            else if (type == EntityType::ENTITY_QUAD) {
+                e->mass = e->scale.x * e->scale.y;
+            }
+
+            e->inertia = calculateMomentOfInertia(e);
+            if (e->isStatic) {
+                e->inverseMass = 0.0f;
+                e->inverseInertia = 0;
+            }
+            else {
+                e->inverseMass = 1.0f / e->mass;
+                e->inverseInertia = 1.0f / e->inertia;
+            }
         }
     }
 
@@ -83,7 +98,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
         }
         e.transformed = false;
 
-        if (e.p.x < -100.0f || e.p.y < -100.0f) {
+        if (e.p.x < -20.0f || e.p.y < -20.0f) {
             // proper body reset
             e.isAlive = false;
             e.v = glm::vec3(0.0f, 0.0f, 0.0f);
