@@ -16,7 +16,7 @@ add_executable(leaf
     src/const.cpp
     src/loader.cpp
     src/renderer.cpp
-    src/math.cpp
+    src/mmath.cpp
     src/physics.cpp
     src/game.cpp
     src/helpers.cpp

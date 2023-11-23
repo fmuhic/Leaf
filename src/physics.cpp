@@ -8,7 +8,7 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/geometric.hpp"
 #include "helpers.h"
-#include "math.h"
+#include "mmath.h"
 #include "physics.h"
 #include "state.h"
 

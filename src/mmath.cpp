@@ -1,4 +1,4 @@
-#include "math.h"
+#include "mmath.h"
 
 f32 lengthSq(glm::vec3 *a) {
     return a->x * a->x + a->y * a->y;
