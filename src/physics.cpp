@@ -317,14 +317,6 @@ void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
 void resolve(CollisionManifold *m) {
     if (!m->colided)
         return;
-    // glm::vec3 vba = b->v - a->v;
-    // // if (glm::dot(vba-> r->normal) > 0.0f)
-    // //     return;
-    //
-    // f32 j = -(1 + e) * glm::dot(vba, m->normal) / (a->inverseMass + b->inverseMass);
-    //
-    // a->v -= j * a->inverseMass * m->normal;
-    // b->v += j * b->inverseMass * m->normal;
 
     Entity *a = m->a;
     Entity *b = m->b;
