@@ -335,7 +335,7 @@ void resolve(CollisionManifold *m) {
     f32 e = min(a->restitution, b->restitution);
 
     glm::vec3 cp[]{ m->cp1, m->cp2 };
-    glm::vec3 impulses[m->contactPointsCount];
+    glm::vec3 impulses[2] = {};
 
     for (i32 i = 0; i < m->contactPointsCount; i++) {
         glm::vec3 pa = cp[i] - a->p;

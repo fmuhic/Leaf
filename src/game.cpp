@@ -95,6 +95,8 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
             e.v = (e.a + g) * dt + v;
             e.p = e.a * dt * dt * 0.5f + e.v * dt + p;
+            e.angle += e.omega * dt;
+
         }
         e.transformed = false;
 
