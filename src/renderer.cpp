@@ -230,23 +230,4 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
         if (e.isAlive && e.type == EntityType::ENTITY_QUAD) 
             drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
     }
-
-    for (i32 i = 0; i < game->collisions.count; i++) {
-        CollisionManifold *m = &game->collisions.manifolds[i];
-        if (m->contactPointsCount >= 1) {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, m->cp1);
-            model = glm::scale(model, glm::vec3(0.2f, 0.2f, 1.0f));
-            glm::vec3 color = glm::vec3(1.0f, 1.0f, 0.4f);
-            drawEntity(shaderProgram, &r->quad, scene, &model, &color);
-
-            if (m->contactPointsCount == 2) {
-                glm::mat4 model = glm::mat4(1.0f);
-                model = glm::translate(model, m->cp2);
-                model = glm::scale(model, glm::vec3(0.2f, 0.2f, 1.0f));
-                glm::vec3 color = glm::vec3(1.0f, 1.0f, 0.4f);
-                drawEntity(shaderProgram, &r->quad, scene, &model, &color);
-            }
-        }
-    }
 }

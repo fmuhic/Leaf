@@ -93,7 +93,7 @@ int main() {
     game->entities[2].type = EntityType::ENTITY_QUAD;
     game->entities[2].p = glm::vec3(-10.0f, 3.0f, 0.0f);
     game->entities[2].scale = glm::vec3(10.0f, 1.0f, 1.0f);
-    game->entities[2].angle = glm::radians((f32) -15);
+    game->entities[2].angle = glm::radians((f32) -25);
     game->entities[2].color = glm::vec3(0.941, 0.953, 0.957);
     game->entities[2].inverseMass = 0.0f;
     game->entities[2].restitution = 0.5;
