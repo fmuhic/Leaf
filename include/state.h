@@ -62,6 +62,8 @@ struct Entity {
     f32 inertia;
     f32 inverseInertia;
     f32 restitution;
+    f32 staticFriction = 0.6f;
+    f32 dynamicFriction = 0.4f;
 };
 
 struct CollisionManifold {

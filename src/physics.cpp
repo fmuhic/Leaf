@@ -260,8 +260,8 @@ bool closeTo(f32 a, f32 b, f32 delta) {
     return fabs(a - b) < delta;
 }
 
-bool closeTo(glm::vec3 a, glm::vec3 b, f32 delta) {
-    return closeTo(a.x, b.x, delta) && closeTo(a.y, b.y, delta);
+bool closeTo(glm::vec3 *a, glm::vec3 *b, f32 delta) {
+    return closeTo(a->x, b->x, delta) && closeTo(a->y, b->y, delta);
 }
 
 void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
@@ -272,7 +272,7 @@ void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m)
         for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
             PointLineResult res = findClosestPointToLine(&v, &b->vertices[j], &b->vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
             if (closeTo(res.distSq, minSqDistance, delta)) {
-                if (!closeTo(res.cp, m->cp1, delta)) {
+                if (!closeTo(&res.cp, &m->cp1, delta)) {
                     m->cp2 = res.cp;
                     m->contactPointsCount = 2;
                 }
@@ -289,7 +289,7 @@ void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m)
         for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
             PointLineResult res = findClosestPointToLine(&v, &a->vertices[j], &a->vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
             if (closeTo(res.distSq, minSqDistance, delta)) {
-                if (!closeTo(res.cp, m->cp1, delta)) {
+                if (!closeTo(&res.cp, &m->cp1, delta)) {
                     m->cp2 = res.cp;
                     m->contactPointsCount = 2;
                 }
@@ -328,6 +328,7 @@ void resolve(CollisionManifold *m) {
 
     glm::vec3 cp[]{ m->cp1, m->cp2 };
     glm::vec3 impulses[2] = {};
+    f32 impulseLen[2] = {};
 
     for (i32 i = 0; i < m->contactPointsCount; i++) {
         glm::vec3 pa = cp[i] - a->p;
@@ -354,6 +355,7 @@ void resolve(CollisionManifold *m) {
 
         j /= (f32) m->contactPointsCount;
 
+        impulseLen[i] = j;
         impulses[i] = j * m->normal;
     }
 
@@ -365,6 +367,55 @@ void resolve(CollisionManifold *m) {
         a->omega -= cross(&pa, &impulses[i]) * a->inverseInertia;
         b->v += impulses[i] * b->inverseMass;
         b->omega += cross(&pb, &impulses[i]) * b->inverseInertia;
+    }
+
+    glm::vec3 frictionImpulses[2]{};
+    f32 staticFriction = (a->staticFriction + b->staticFriction) * 2;
+    f32 dynamicFriction = (a->dynamicFriction + b->dynamicFriction) * 2;
+    // Friction
+    for (i32 i = 0; i < m->contactPointsCount; i++) {
+        glm::vec3 pa = cp[i] - a->p;
+        glm::vec3 pb = cp[i] - b->p;
+
+        glm::vec3 pap = glm::vec3(-pa.y, pa.x, 0.0f);
+        glm::vec3 pbp = glm::vec3(-pb.y, pb.x, 0.0f);
+
+        glm::vec3 omegaA = a->omega * pap;
+        glm::vec3 omegaB = b->omega * pbp;
+
+        glm::vec3 va = a->v + omegaA; 
+        glm::vec3 vb = b->v + omegaB; 
+
+        glm::vec3 vRelative = vb - va;
+
+        glm::vec3 tangent = vRelative - glm::dot(vRelative, m->normal) * m->normal;
+
+        glm::vec3 zero = glm::vec3(0.0f, 0.0f, 0.0f);
+        f32 delta = 0.005;
+        if (closeTo(&tangent, &zero, delta))
+            continue;
+        else
+            tangent = glm::normalize(tangent);
+
+        f32 jf = -glm::dot(vRelative, tangent) /
+            (a->inverseMass + b->inverseMass + pow(glm::dot(pap, tangent), 2) * a->inverseInertia + pow(glm::dot(pbp, tangent), 2) * b->inverseInertia);
+
+        jf /= (f32) m->contactPointsCount;
+
+        if (fabs(jf) < impulseLen[i] * staticFriction)
+            frictionImpulses[i] = jf * tangent;
+        else
+            frictionImpulses[i] = -impulseLen[i] * tangent * dynamicFriction;
+    }
+
+    for (i32 i = 0; i < m->contactPointsCount; i++) {
+        glm::vec3 pa = cp[i] - a->p;
+        glm::vec3 pb = cp[i] - b->p;
+
+        a->v -= frictionImpulses[i] * a->inverseMass;
+        a->omega -= cross(&pa, &frictionImpulses[i]) * a->inverseInertia;
+        b->v += frictionImpulses[i] * b->inverseMass;
+        b->omega += cross(&pb, &frictionImpulses[i]) * b->inverseInertia;
     }
 }
 
