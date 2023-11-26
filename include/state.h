@@ -26,6 +26,10 @@ struct MouseInput {
     bool leftClickPressed;
     bool leftClickReleased;
     bool leftClickClicked;
+
+    bool rightClickPressed;
+    bool rightClickReleased;
+    bool rightClickClicked;
 };
 
 struct Scene {

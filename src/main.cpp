@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <assert.h>
 #include <string>
 #include <iostream>
@@ -108,14 +109,21 @@ int main() {
         lag += elapsed;
         previous = current;
 
-        while (lag > GAME_UPDATE_INTERVAL_SEC) {
+        f32 updateStepDuration = GAME_UPDATE_INTERVAL_SEC;
+        f32 gameStep = GAME_UPDATE_INTERVAL_SEC;
+        while (lag > gameStep) {
             kInput = {};
             processKeyboardInput(window);
             processMouseInput(window);
             f64 gameUpdateStart = glfwGetTime();
-            updateGame(GAME_UPDATE_INTERVAL_SEC, game, &kInput, &mInput);
-            // cout << "Update step " << (glfwGetTime() - gameUpdateStart) * 1000.0f << endl;
-            lag -= GAME_UPDATE_INTERVAL_SEC;
+            updateGame(gameStep, game, &kInput, &mInput);
+            f64 updateDuration = glfwGetTime() - gameUpdateStart;
+            lag -= gameStep;
+
+            if (updateDuration > GAME_UPDATE_INTERVAL_SEC * 0.8f)
+                gameStep *= 1.2f;
+            else
+                gameStep = GAME_UPDATE_INTERVAL_SEC;
         }
 
         drawFrame(renderer, scene, game);
@@ -144,9 +152,10 @@ void processKeyboardInput(GLFWwindow *window) {
 }
 
 void processMouseInput(GLFWwindow *window) {
-    int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    int leftMouse = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
+    int rightMouse = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
-    if (state == GLFW_RELEASE)
+    if (leftMouse == GLFW_RELEASE)
         mInput.leftClickReleased = true;
     else
         mInput.leftClickPressed = false;
@@ -156,10 +165,30 @@ void processMouseInput(GLFWwindow *window) {
     else
         mInput.leftClickClicked = false;
 
-    if (state == GLFW_PRESS)
+    if (leftMouse == GLFW_PRESS)
         mInput.leftClickPressed = true;
     else
         mInput.leftClickPressed = false;
+
+
+
+
+    if (rightMouse == GLFW_RELEASE)
+        mInput.rightClickReleased = true;
+    else
+        mInput.rightClickPressed = false;
+    
+    if (mInput.rightClickPressed && mInput.rightClickReleased) {
+        mInput.rightClickClicked = true;
+        cout << "right clicked\n";
+    }
+    else
+        mInput.rightClickClicked = false;
+
+    if (rightMouse == GLFW_PRESS)
+        mInput.rightClickPressed = true;
+    else
+        mInput.rightClickPressed = false;
 
     f64 x, y;
     glfwGetCursorPos(window, &x, &y);
