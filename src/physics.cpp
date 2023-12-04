@@ -370,8 +370,8 @@ void resolve(CollisionManifold *m) {
     }
 
     glm::vec3 frictionImpulses[2]{};
-    f32 staticFriction = (a->staticFriction + b->staticFriction) * 2;
-    f32 dynamicFriction = (a->dynamicFriction + b->dynamicFriction) * 2;
+    f32 staticFriction = (a->staticFriction + b->staticFriction) * 0.5f;
+    f32 dynamicFriction = (a->dynamicFriction + b->dynamicFriction) * 0.5f;
     // Friction
     for (i32 i = 0; i < m->contactPointsCount; i++) {
         glm::vec3 pa = cp[i] - a->p;
