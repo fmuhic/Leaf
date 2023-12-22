@@ -13,9 +13,9 @@
 #include "state.h"
 
 f32 calculateMomentOfInertia(Entity *e) {
-    if (e->type == EntityType::ENTITY_CIRCLE)
+    if (e->type == EntityType::CIRCLE)
         return 0.5f * e->mass * e->r * e->r;
-    else if (e->type == EntityType::ENTITY_QUAD)
+    else if (e->type == EntityType::RECTANGLE)
         return (1.0f / 12.0f) * e->mass * (e->scale.x * e->scale.x + e->scale.y * e->scale.y);
 
     assert("Invalid entity type");
@@ -23,11 +23,11 @@ f32 calculateMomentOfInertia(Entity *e) {
 }
 
 void updateAABB(Entity *e) {
-    if (e->type == EntityType::ENTITY_CIRCLE) {
+    if (e->type == EntityType::CIRCLE) {
         e->aabb.bottomLeft = e->p - e->r;
         e->aabb.topRight = e->p + e->r;
     }
-    else if (e->type == EntityType::ENTITY_QUAD) {
+    else if (e->type == EntityType::RECTANGLE) {
         f32 xMin = e->vertices[0].x;
         f32 xMax = e->vertices[0].x;
         f32 yMin = e->vertices[0].y;
@@ -304,13 +304,13 @@ void findPolygonPolygonContactPoints(Entity *a, Entity *b, CollisionManifold *m)
 }
 
 void findContactPoints(Entity *a, Entity *b, CollisionManifold *m) {
-    if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_CIRCLE)
+    if (a->type == EntityType::CIRCLE && b->type == EntityType::CIRCLE)
         findCircleCircleContactPoints(a, b, m);
-    else if (a->type == EntityType::ENTITY_QUAD && b->type == EntityType::ENTITY_CIRCLE)
+    else if (a->type == EntityType::RECTANGLE && b->type == EntityType::CIRCLE)
         findPolygonCircleContactPoints(a, b, m);
-    else if (a->type == EntityType::ENTITY_CIRCLE && b->type == EntityType::ENTITY_QUAD)
+    else if (a->type == EntityType::CIRCLE && b->type == EntityType::RECTANGLE)
         findPolygonCircleContactPoints(b, a, m);
-    else if (a->type == EntityType::ENTITY_QUAD && b->type == EntityType::ENTITY_QUAD) 
+    else if (a->type == EntityType::RECTANGLE && b->type == EntityType::RECTANGLE) 
         findPolygonPolygonContactPoints(b, a, m);
 }
 
@@ -447,15 +447,15 @@ void checkCollisions(Game *game) {
                 continue;
 
             CollisionManifold cm{};
-            if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_CIRCLE)
+            if (a.type == EntityType::CIRCLE && b.type == EntityType::CIRCLE)
                 cm = checkCircleCircle(&a, &b);
-            if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_CIRCLE)
+            if (a.type == EntityType::RECTANGLE && b.type == EntityType::CIRCLE)
                 cm = checkPlygonCircle(&a, &b);
-            if (a.type == EntityType::ENTITY_CIRCLE && b.type == EntityType::ENTITY_QUAD) {
+            if (a.type == EntityType::CIRCLE && b.type == EntityType::RECTANGLE) {
                 cm = checkPlygonCircle(&b, &a);
                 cm.normal *= -1;
             }
-            if (a.type == EntityType::ENTITY_QUAD && b.type == EntityType::ENTITY_QUAD)
+            if (a.type == EntityType::RECTANGLE && b.type == EntityType::RECTANGLE)
                 cm = checkPlygonPolygon(&a, &b);
 
             cm.a = &game->entities[i];

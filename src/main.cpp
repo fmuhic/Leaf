@@ -67,37 +67,28 @@ int main() {
 
     Game *game = new Game{};
 
-    // Player
-    game->entities[0].isAlive = true;
-    game->entities[0].type = EntityType::ENTITY_QUAD;
-    game->entities[0].scale = glm::vec3(1.2f, 1.5f, 1.0f);
-    game->entities[0].p = glm::vec3(5.0f, 0.0f, 0.0f);
-    game->entities[0].color = glm::vec3(0.3f, 0.7f, 0.1f);
-    game->entities[0].inverseMass = 1.0f / 1.2f * 1.5f;
-    game->entities[0].restitution = 0.66f;
-
     // Ground
+    game->entities[0].isAlive = true;
+    game->entities[0].isStatic = true;
+    game->entities[0].p = glm::vec3();
+    game->entities[0].type = EntityType::RECTANGLE;
+    game->entities[0].p = glm::vec3(0.0f, -8.0f, 0.0f);
+    game->entities[0].scale = glm::vec3(25.0f, 1.0f, 1.0f);
+    game->entities[0].color = glm::vec3(0.941, 0.953, 0.957);
+    game->entities[0].inverseMass = 0.0f;
+    game->entities[0].restitution = 0.5;
+
+    // Slope
     game->entities[1].isAlive = true;
     game->entities[1].isStatic = true;
     game->entities[1].p = glm::vec3();
-    game->entities[1].type = EntityType::ENTITY_QUAD;
-    game->entities[1].p = glm::vec3(0.0f, -8.0f, 0.0f);
-    game->entities[1].scale = glm::vec3(25.0f, 1.0f, 1.0f);
+    game->entities[1].type = EntityType::RECTANGLE;
+    game->entities[1].p = glm::vec3(-10.0f, 3.0f, 0.0f);
+    game->entities[1].scale = glm::vec3(10.0f, 1.0f, 1.0f);
+    game->entities[1].angle = glm::radians((f32) -25);
     game->entities[1].color = glm::vec3(0.941, 0.953, 0.957);
     game->entities[1].inverseMass = 0.0f;
     game->entities[1].restitution = 0.5;
-
-    // Slope
-    game->entities[2].isAlive = true;
-    game->entities[2].isStatic = true;
-    game->entities[2].p = glm::vec3();
-    game->entities[2].type = EntityType::ENTITY_QUAD;
-    game->entities[2].p = glm::vec3(-10.0f, 3.0f, 0.0f);
-    game->entities[2].scale = glm::vec3(10.0f, 1.0f, 1.0f);
-    game->entities[2].angle = glm::radians((f32) -25);
-    game->entities[2].color = glm::vec3(0.941, 0.953, 0.957);
-    game->entities[2].inverseMass = 0.0f;
-    game->entities[2].restitution = 0.5;
 
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 

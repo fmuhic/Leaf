@@ -13,6 +13,8 @@ project(leaf VERSION 1.0)
 
 add_executable(leaf
     src/main.cpp
+    src/rigid_body/body.cpp
+    src/rigid_body/geometry.cpp
     src/const.cpp
     src/loader.cpp
     src/renderer.cpp

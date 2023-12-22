@@ -49,11 +49,11 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     if (mInput->leftClickClicked || mInput->rightClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
-            EntityType type = EntityType::ENTITY_QUAD;
+            EntityType type = EntityType::RECTANGLE;
             if (mInput->leftClickClicked)
-                type = EntityType::ENTITY_QUAD;
+                type = EntityType::RECTANGLE;
             if (mInput->rightClickClicked)
-                type = EntityType::ENTITY_CIRCLE;
+                type = EntityType::CIRCLE;
             Entity *e = &game->entities[eIndex];
             e->isAlive = true;
             e->type = type;
@@ -61,18 +61,18 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
             // e->angle = glm::radians((f32) pickRand(0, 360));
             f32 xs = pickRand(10, 20) / 10.0f;
             f32 ys = pickRand(10, 20) / 10.0f;
-            if (type == EntityType::ENTITY_CIRCLE) {
+            if (type == EntityType::CIRCLE) {
                 e->scale = glm::vec3(xs, xs, 1.0f);
                 e->r = 0.5f * xs;
             }
-            else if (type == EntityType::ENTITY_QUAD)
+            else if (type == EntityType::RECTANGLE)
                 e->scale = glm::vec3(xs, ys, 1.0f);
             e->restitution = 0.66f; // Glass
             e->color = game->colors[pickRand(0, COLOR_COUNT - 1)];
-            if (type == EntityType::ENTITY_CIRCLE) {
+            if (type == EntityType::CIRCLE) {
                 e->mass = e->r * e->r * PI;
             }
-            else if (type == EntityType::ENTITY_QUAD) {
+            else if (type == EntityType::RECTANGLE) {
                 e->mass = e->scale.x * e->scale.y;
             }
 

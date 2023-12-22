@@ -216,7 +216,7 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);
     glBindVertexArray(r->circle.vao);
     for (auto e: game->entities) {
-        if (e.isAlive && e.type == EntityType::ENTITY_CIRCLE)
+        if (e.isAlive && e.type == EntityType::CIRCLE)
             drawEntity(shaderProgram, &r->circle, scene, &e.model, &e.color);
     }
     glBindVertexArray(0);
@@ -227,7 +227,7 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
     glBindVertexArray(r->quad.vao);
     for (auto e: game->entities) {
-        if (e.isAlive && e.type == EntityType::ENTITY_QUAD) 
+        if (e.isAlive && e.type == EntityType::RECTANGLE) 
             drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
     }
 }

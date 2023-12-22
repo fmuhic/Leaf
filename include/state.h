@@ -3,6 +3,8 @@
 #include <glm/glm.hpp>
 
 #include "types.h"
+#include "rigid_body/body.h"
+#include "rigid_body/geometry.h"
 
 #define ENTITY_COUNT 100
 #define MAX_COLISION_COUNT 10000
@@ -10,8 +12,8 @@
 #define COLOR_COUNT 14
 
 enum class EntityType: ui32 {
-    ENTITY_QUAD = 0,
-    ENTITY_CIRCLE = 1
+    RECTANGLE = 0,
+    CIRCLE = 1
 };
 
 struct KeyboardInput {
@@ -39,15 +41,10 @@ struct Scene {
     glm::mat4 inverseProjectionView;
 };
 
-struct AABB {
-    glm::vec3 bottomLeft;
-    glm::vec3 topRight;
-};
-
 struct Entity {
     bool isAlive = false;
     bool isStatic = false;
-    EntityType type = EntityType::ENTITY_QUAD;
+    EntityType type = EntityType::RECTANGLE;
     glm::vec3 a = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 v = glm::vec3(0.0f, 0.0f, 0.0f);
     f32 omega = 0.0f;
