@@ -14,7 +14,7 @@ void printVec(std::string name, glm::vec3 p) {
     std::cout << name << " (x=" << p.x << ", y=" << p.y << ", z=" << p.z << ")\n";
 }
 
-f32 max(f32 *xs, ui32 count) {
+f32 max(f32 *xs, i32 count) {
     assert(count > 0);
     f32 max = xs[0];
     for (i32 i = 1; i < count; ++i) {
@@ -24,7 +24,7 @@ f32 max(f32 *xs, ui32 count) {
     return max;
 }
 
-f32 min(f32 *xs, ui32 count) {
+f32 min(f32 *xs, i32 count) {
     assert(count > 0);
     f32 min = xs[0];
     for (i32 i = 1; i < count; ++i) {

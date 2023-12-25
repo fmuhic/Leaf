@@ -3,8 +3,7 @@
 #include <glm/glm.hpp>
 
 #include "types.h"
-#include "rigid_body/body.h"
-#include "rigid_body/geometry.h"
+#include "body.h"
 
 #define ENTITY_COUNT 100
 #define MAX_COLISION_COUNT 10000
@@ -42,6 +41,8 @@ struct Scene {
 };
 
 struct Entity {
+    RigidBody body;
+
     bool isAlive = false;
     bool isStatic = false;
     EntityType type = EntityType::RECTANGLE;
@@ -63,8 +64,8 @@ struct Entity {
     f32 inertia;
     f32 inverseInertia;
     f32 restitution;
-    f32 staticFriction = 0.55;
-    f32 dynamicFriction = 0.35f;
+    f32 staticFriction = 0.65;
+    f32 dynamicFriction = 0.45f;
 };
 
 struct CollisionManifold {

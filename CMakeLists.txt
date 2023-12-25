@@ -13,8 +13,7 @@ project(leaf VERSION 1.0)
 
 add_executable(leaf
     src/main.cpp
-    src/rigid_body/body.cpp
-    src/rigid_body/geometry.cpp
+    src/body.cpp
     src/const.cpp
     src/loader.cpp
     src/renderer.cpp
@@ -24,7 +23,12 @@ add_executable(leaf
     src/helpers.cpp
 )
 
-add_compile_options(-Wall -g)
+if(MSVC)
+  target_compile_options(leaf PRIVATE /W4 /WX)
+else()
+  target_compile_options(leaf PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
 target_include_directories(leaf PRIVATE include)
 
 find_package(OpenGL REQUIRED)

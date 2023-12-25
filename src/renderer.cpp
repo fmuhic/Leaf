@@ -53,7 +53,7 @@ ui32 createProgram(ui32 vertexShader, ui32 fragmentShader) {
     return program;
 }
 
-void createCircleEntity(VideoEntity *circle, ui32 program, f32 r, ui32 pointCount) {
+void createCircleEntity(VideoEntity *circle, [[maybe_unused]] ui32 program, f32 r, i32 pointCount) {
     assert(pointCount > 2 && "We need at least 3 points to approximate circle");
     f32 baseAngle = 360.0f / pointCount;
     const i32 triangleCount = pointCount - 2;

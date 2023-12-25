@@ -49,18 +49,22 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
     if (mInput->leftClickClicked || mInput->rightClickClicked) {
         i32 eIndex = getFirstFreeEntity(game);
         if (eIndex != -1) {
+            Entity *e = &game->entities[eIndex];
+            e->isAlive = true;
+            e->body.reset();
+            e->body.position = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
+
             EntityType type = EntityType::RECTANGLE;
             if (mInput->leftClickClicked)
                 type = EntityType::RECTANGLE;
             if (mInput->rightClickClicked)
                 type = EntityType::CIRCLE;
-            Entity *e = &game->entities[eIndex];
-            e->isAlive = true;
             e->type = type;
             e->p = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
             // e->angle = glm::radians((f32) pickRand(0, 360));
             f32 xs = pickRand(10, 20) / 10.0f;
             f32 ys = pickRand(10, 20) / 10.0f;
+
             if (type == EntityType::CIRCLE) {
                 e->scale = glm::vec3(xs, xs, 1.0f);
                 e->r = 0.5f * xs;
@@ -90,6 +94,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
 
     for (i32 i = 1; i < ENTITY_COUNT; ++i) {
         Entity &e = game->entities[i];
+        e.body.step(dt);
 
         if(e.isAlive && !e.isStatic) {
             glm::vec3 p = e.p;
@@ -97,7 +102,7 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
 
             glm::vec3 g = glm::vec3(0.0f, -9.81f, 0.0f);
             e.v = (e.a + g) * dt + v;
-            e.p = e.a * dt * dt * 0.5f + e.v * dt + p;
+            e.p = (e.a + g) * dt * dt * 0.5f + e.v * dt + p;
             e.angle += e.omega * dt;
 
         }

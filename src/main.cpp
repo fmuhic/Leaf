@@ -57,13 +57,13 @@ int main() {
         (f32) SCREEN_HEIGHT
     );
 
-    scene = new Scene {
+    scene = new Scene();
+    scene->camera = 
         glm::lookAt(
             vec3(0.0, 0.0, 0.05f),
             vec3(0.0, 0.0, 0.0f),
             vec3(0.0f, 1.0f, 0.0f)
-        )
-    };
+        );
 
     Game *game = new Game{};
 
@@ -100,7 +100,6 @@ int main() {
         lag += elapsed;
         previous = current;
 
-        f32 updateStepDuration = GAME_UPDATE_INTERVAL_SEC;
         f32 gameStep = GAME_UPDATE_INTERVAL_SEC;
         while (lag > gameStep) {
             kInput = {};
@@ -162,17 +161,13 @@ void processMouseInput(GLFWwindow *window) {
         mInput.leftClickPressed = false;
 
 
-
-
     if (rightMouse == GLFW_RELEASE)
         mInput.rightClickReleased = true;
     else
         mInput.rightClickPressed = false;
     
-    if (mInput.rightClickPressed && mInput.rightClickReleased) {
+    if (mInput.rightClickPressed && mInput.rightClickReleased)
         mInput.rightClickClicked = true;
-        cout << "right clicked\n";
-    }
     else
         mInput.rightClickClicked = false;
 
@@ -191,7 +186,7 @@ void processMouseInput(GLFWwindow *window) {
     );
 }
 
-void framebufferSizeCallback(GLFWwindow* window, int width, int height) {
+void framebufferSizeCallback([[maybe_unused]] GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
     renderer->screenWidth = width;
     renderer->screenHeight = height;
