@@ -31,11 +31,13 @@ RigidBody::RigidBody(
         case BodyType::RECTANGLE: {
             mass = scale.x * scale.y;
             inertia = 1.0f / 12.0f * mass * (scale.x * scale.x + scale.y * scale.y);
+            vertexCount = 4;
         } break;
 
         case BodyType::CIRCLE: {
             mass = scale.x * scale.x;
             inertia = 0.5f * mass * scale.x * scale.x;
+            vertexCount = 0;
         } break;
     }
 

@@ -8,7 +8,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "glm/ext/vector_float3.hpp"
+#include "geometry.h"
 #include "helpers.h"
 #include "game.h"
 #include "renderer.h"
@@ -32,6 +32,7 @@ KeyboardInput kInput{};
 MouseInput mInput{};
 Renderer *renderer;
 Scene *scene;
+Geometry *geometry;
 
 int main() {
     glfwInit();

@@ -38,6 +38,7 @@ struct RigidBody {
     glm::vec3 scale;
     glm::mat4 model;
     glm::vec3 vertices[MAX_VERTEX_COUNT];
+    i32 vertexCount;
 
     glm::vec3 acceleration;
     glm::vec3 linearVelocity;
