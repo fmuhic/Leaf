@@ -1,8 +1,11 @@
 #include "world.h"
 #include "geometry.h"
+#include "physics.h"
 
 World::World(i32 maxEntityCount) {
     geometry = new Geometry();
+    physics = new Physics();
+
     entities.reserve(maxEntityCount);
     for (i32 i = 0; i < maxEntityCount; ++i)
         entities.push_back(Entity{});
@@ -10,6 +13,7 @@ World::World(i32 maxEntityCount) {
 
 World::~World() {
     delete geometry;
+    delete physics;
 }
 
 void World::update(f32 dt, [[maybe_unused]] KeyboardInput *kInput, MouseInput *mInput) {
@@ -24,6 +28,7 @@ void World::update(f32 dt, [[maybe_unused]] KeyboardInput *kInput, MouseInput *m
 
     geometry->broadPhase(&entities);
     geometry->narrowPhase(&entities);
+    physics->resolveCollisions(geometry->collisions, entities);
 }
 
 void World::processInput(MouseInput *mInput) {

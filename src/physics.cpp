@@ -12,6 +12,8 @@
 #include "physics.h"
 #include "state.h"
 
+using std::vector;
+
 f32 calculateMomentOfInertia(Entity *e) {
     if (e->type == EntityType::CIRCLE)
         return 0.5f * e->mass * e->r * e->r;
@@ -469,5 +471,23 @@ void resolveCollisions(Game *game) {
     for (i32 i = 0; i < game->collisions.count; i++) {
         CollisionManifold *m = &game->collisions.manifolds[i];
         resolve(m);
+    }
+}
+
+
+
+void Physics::resolveCollisions(vector<Collision>& collisions, vector<Entity>& entities) {
+    for (auto &c: collisions) {
+        Entity &a = entities.at(c.entities.first);
+        Entity &b = entities.at(c.entities.second);
+
+        if (a.isStatic)
+            b.body.position += c.depth * c.normal;
+        else if (b.isStatic)
+            a.body.position -= c.depth * c.normal;
+        else {
+            a.body.position -= 0.5f * c.depth * c.normal;
+            b.body.position += 0.5f * c.depth * c.normal;
+        }
     }
 }

@@ -109,7 +109,7 @@ int main() {
             processKeyboardInput(window);
             processMouseInput(window);
             f64 gameUpdateStart = glfwGetTime();
-            updateGame(gameStep, game, &kInput, &mInput);
+            // updateGame(gameStep, game, &kInput, &mInput);
             world->update(gameStep, &kInput, &mInput);
             f64 updateDuration = glfwGetTime() - gameUpdateStart;
             lag -= gameStep;

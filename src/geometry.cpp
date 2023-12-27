@@ -48,17 +48,8 @@ void Geometry::narrowPhase(std::vector<Entity>* entities) {
         else
             assert(false && "Invalid object types");
         if (c.colided) { 
+            c.entities = candidate;
             collisions.push_back(c);
-
-            // Refactor this into collision resolution step
-            if (a.isStatic)
-                b.body.position += c.depth * c.normal;
-            else if (b.isStatic)
-                a.body.position -= c.depth * c.normal;
-            else {
-                a.body.position -= 0.5f * c.depth * c.normal;
-                b.body.position += 0.5f * c.depth * c.normal;
-            }
         }
     }
 }

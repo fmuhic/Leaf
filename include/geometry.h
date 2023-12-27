@@ -10,6 +10,7 @@
 #define COLLISION_COUNT ENTITY_COUNT * 4
 
 struct Collision {
+    std::pair<i32, i32> entities;
     Entity *a;
     Entity *b;
     bool colided = false;
@@ -27,6 +28,8 @@ struct Geometry {
     void narrowPhase(std::vector<Entity>* entities);
     void reset();
 
+    std::vector<Collision> collisions;
+
     private:
 
     bool aabbIntersect(AABB* a, AABB* b);
@@ -35,5 +38,4 @@ struct Geometry {
     Collision checkPlygonPolygon(RigidBody *a, RigidBody *b);
 
     std::vector<std::pair<i32, i32>> candidates; 
-    std::vector<Collision> collisions;
 };

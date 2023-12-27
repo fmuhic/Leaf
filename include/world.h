@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "geometry.h"
+#include "physics.h"
 #include "types.h"
 #include "state.h"
 
@@ -23,4 +24,5 @@ struct World {
     void processInput(MouseInput *mInput);
 
     Geometry* geometry;
+    Physics* physics;
 };

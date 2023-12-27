@@ -1,6 +1,9 @@
 #pragma once
 
+#include <vector>
+
 #include "state.h"
+#include "geometry.h"
 
 struct CollisionResult {
     bool colided = false;
@@ -21,3 +24,7 @@ struct PointLineResult {
 void checkCollisions(Game *game);
 void resolveCollisions(Game *game);
 f32 calculateMomentOfInertia(Entity *e);
+
+struct Physics {
+    void resolveCollisions(std::vector<Collision>& collisions, std::vector<Entity>& entities);
+};
