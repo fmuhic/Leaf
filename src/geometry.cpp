@@ -1,26 +1,26 @@
-#include <cfloat>
-
 #include "geometry.h"
 #include "state.h"
+#include <iostream>
 
 using std::pair;
+using std::vector;
 
 Geometry::Geometry() {
     candidates.reserve(COLLISION_COUNT);
     collisions.reserve(COLLISION_COUNT);
 }
 
-void Geometry::broadPhase(Entity *entities) {
+void Geometry::broadPhase(vector<Entity>* entities) {
     candidates.clear();
 
     // Switch to spatial partitioning
-    for (i32 i = 0; i < ENTITY_COUNT - 1; ++i) {
-        Entity &a = entities[i];
+    for (ui32 i = 0; i < entities->size() - 1; ++i) {
+        Entity &a = entities->at(i);
         if (!a.isAlive)
             continue;
 
-        for (i32 j = i + 1; j < ENTITY_COUNT; ++j) {
-            Entity &b = entities[j];
+        for (ui32 j = i + 1; j < entities->size(); ++j) {
+            Entity &b = entities->at(j);
             if (!b.isAlive)
                 continue;
 
@@ -35,18 +35,31 @@ void Geometry::broadPhase(Entity *entities) {
     }
 }
 
-void Geometry::narrowPhase(Entity *entities) {
+void Geometry::narrowPhase(std::vector<Entity>* entities) {
     collisions.clear();
 
     for (auto &candidate: candidates) {
-        Entity a = entities[candidate.first];
-        Entity b = entities[candidate.second];
+        Entity &a = entities->at(candidate.first);
+        Entity &b = entities->at(candidate.second);
 
-        Collision c{};
+        Collision c;
         if (a.type == EntityType::RECTANGLE && b.type == EntityType::RECTANGLE)
             c = checkPlygonPolygon(&a.body, &b.body);
         else
             assert(false && "Invalid object types");
+        if (c.colided) { 
+            collisions.push_back(c);
+
+            // Refactor this into collision resolution step
+            if (a.isStatic)
+                b.body.position += c.depth * c.normal;
+            else if (b.isStatic)
+                a.body.position -= c.depth * c.normal;
+            else {
+                a.body.position -= 0.5f * c.depth * c.normal;
+                b.body.position += 0.5f * c.depth * c.normal;
+            }
+        }
     }
 }
 
@@ -57,6 +70,7 @@ bool Geometry::aabbIntersect(AABB* a, AABB* b) {
     return true;
 }
 
+// Optimize for rectangle to check only 2 axis per body  
 Collision Geometry::checkPlygonPolygon(RigidBody *a, RigidBody *b) {
     Collision c{};
     c.depth = FLT_MAX;
@@ -90,7 +104,7 @@ Collision Geometry::checkPlygonPolygon(RigidBody *a, RigidBody *b) {
             return c;
         }
 
-        f32 depth = fmin(ap.first - bp.second, bp.second - ap.first);
+        f32 depth = fmin(ap.second - bp.first, bp.second - ap.first);
         if (depth < c.depth) {
             c.depth = depth;
             c.normal = axis;

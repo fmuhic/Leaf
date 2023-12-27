@@ -20,6 +20,7 @@ add_executable(leaf
     src/renderer.cpp
     src/mmath.cpp
     src/physics.cpp
+    src/world.cpp
     src/game.cpp
     src/helpers.cpp
 )

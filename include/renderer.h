@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include "types.h"
 #include "state.h"
+#include "world.h"
 
 struct VideoEntity {
     f32 *vertices;
@@ -25,4 +26,4 @@ struct Renderer {
 Renderer * createRenderer(f32 screenWidth, f32 screenHeight);
 void setupScene(Renderer *r);
 void rendererCleanup(Renderer *r);
-void drawFrame(Renderer *r, Scene *scene, Game *game);
+void drawFrame(Renderer *r, Scene *scene, Game *game, World *world);

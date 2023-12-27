@@ -68,7 +68,7 @@ void RigidBody::step(f32 dt) {
 
     glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
     linearVelocity = (acceleration + gravity) * dt + v0;
-    position = 0.5f * (acceleration + gravity) * dt * dt + linearVelocity * dt + p0;
+    position = (acceleration + gravity) * dt * dt * 0.5f + linearVelocity * dt + p0;
     orientation += angularVelocity * dt;
 
     transformToWorld();

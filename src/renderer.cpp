@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "body.h"
 #include "helpers.h"
 #include "renderer.h"
 #include "loader.h"
@@ -190,7 +191,7 @@ void drawEntity(f32 shaderProgram, VideoEntity *e, Scene *scene, glm::mat4 *mode
     glDrawElements(GL_TRIANGLES, e->indiceCount, GL_UNSIGNED_INT, 0);
 }
 
-void drawFrame(Renderer *r, Scene *scene, Game *game) {
+void drawFrame(Renderer *r, Scene *scene, [[maybe_unused]] Game *game, World *world) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -213,21 +214,29 @@ void drawFrame(Renderer *r, Scene *scene, Game *game) {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);
-    glBindVertexArray(r->circle.vao);
-    for (auto e: game->entities) {
-        if (e.isAlive && e.type == EntityType::CIRCLE)
-            drawEntity(shaderProgram, &r->circle, scene, &e.model, &e.color);
-    }
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
     glBindVertexArray(r->quad.vao);
-    for (auto e: game->entities) {
-        if (e.isAlive && e.type == EntityType::RECTANGLE) 
-            drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
+    glm::vec3 color = glm::vec3(0.65f, 0.41f, 0.74f);
+    for (auto e: world->entities) {
+        if (e.isAlive && e.body.type == BodyType::RECTANGLE) 
+            drawEntity(shaderProgram, &r->quad, scene, &e.body.model, &color);
     }
+
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);
+    // glBindVertexArray(r->circle.vao);
+    // for (auto e: game->entities) {
+    //     if (e.isAlive && e.type == EntityType::CIRCLE)
+    //         drawEntity(shaderProgram, &r->circle, scene, &e.model, &e.color);
+    // }
+    // glBindVertexArray(0);
+    // glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //
+    //
+    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
+    // glBindVertexArray(r->quad.vao);
+    // for (auto e: game->entities) {
+    //     if (e.isAlive && e.type == EntityType::RECTANGLE) 
+    //         drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
+    // }
 }

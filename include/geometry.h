@@ -7,7 +7,7 @@
 #include "state.h"
 #include "body.h"
 
-#define COLLISION_COUNT ENTITY_COUNT * 2
+#define COLLISION_COUNT ENTITY_COUNT * 4
 
 struct Collision {
     Entity *a;
@@ -23,8 +23,8 @@ struct Collision {
 struct Geometry {
     Geometry();
 
-    void broadPhase(Entity* entities);
-    void narrowPhase(Entity* entities);
+    void broadPhase(std::vector<Entity>* entities);
+    void narrowPhase(std::vector<Entity>* entities);
     void reset();
 
     private:

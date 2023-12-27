@@ -13,6 +13,7 @@
 #include "game.h"
 #include "renderer.h"
 #include "state.h"
+#include "world.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processKeyboardInput(GLFWwindow *window);
@@ -59,12 +60,11 @@ int main() {
     );
 
     scene = new Scene();
-    scene->camera = 
-        glm::lookAt(
-            vec3(0.0, 0.0, 0.05f),
-            vec3(0.0, 0.0, 0.0f),
-            vec3(0.0f, 1.0f, 0.0f)
-        );
+    scene->camera = glm::lookAt(
+        vec3(0.0, 0.0, 0.05f),
+        vec3(0.0, 0.0, 0.0f),
+        vec3(0.0f, 1.0f, 0.0f)
+    );
 
     Game *game = new Game{};
 
@@ -93,6 +93,8 @@ int main() {
 
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
+    World *world = new World(50);
+
     f64 previous = glfwGetTime();
     f64 lag = 0.0;
     while (!glfwWindowShouldClose(window)) {
@@ -108,6 +110,7 @@ int main() {
             processMouseInput(window);
             f64 gameUpdateStart = glfwGetTime();
             updateGame(gameStep, game, &kInput, &mInput);
+            world->update(gameStep, &kInput, &mInput);
             f64 updateDuration = glfwGetTime() - gameUpdateStart;
             lag -= gameStep;
 
@@ -117,7 +120,7 @@ int main() {
                 gameStep = GAME_UPDATE_INTERVAL_SEC;
         }
 
-        drawFrame(renderer, scene, game);
+        drawFrame(renderer, scene, game, world);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

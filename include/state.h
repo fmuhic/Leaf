@@ -66,6 +66,11 @@ struct Entity {
     f32 restitution;
     f32 staticFriction = 0.65;
     f32 dynamicFriction = 0.45f;
+
+    void despawnIfOutOfBounds() {
+        if (body.position.x < -50.0f || body.position.y < -50.0f)
+            isAlive = false;
+    }
 };
 
 struct CollisionManifold {

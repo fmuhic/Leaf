@@ -51,8 +51,8 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
         if (eIndex != -1) {
             Entity *e = &game->entities[eIndex];
             e->isAlive = true;
-            e->body.reset();
-            e->body.position = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
+            // e->body.reset();
+            // e->body.position = glm::vec3(mInput->position.x, mInput->position.y, 0.0f);
 
             EntityType type = EntityType::RECTANGLE;
             if (mInput->leftClickClicked)
@@ -94,7 +94,6 @@ void updateGame(f32 dt, Game *game, KeyboardInput *kInput, MouseInput *mInput) {
 
     for (i32 i = 1; i < ENTITY_COUNT; ++i) {
         Entity &e = game->entities[i];
-        e.body.step(dt);
 
         if(e.isAlive && !e.isStatic) {
             glm::vec3 p = e.p;
