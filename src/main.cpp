@@ -94,6 +94,7 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     World *world = new World(50);
+    world->createStackingScene();
 
     f64 previous = glfwGetTime();
     f64 lag = 0.0;

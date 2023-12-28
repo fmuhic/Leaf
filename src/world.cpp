@@ -1,4 +1,5 @@
 #include "world.h"
+#include "body.h"
 #include "geometry.h"
 #include "physics.h"
 
@@ -48,4 +49,22 @@ Entity* World::findFreeEntity() {
         if (!e.isAlive)
             return &e;
     return nullptr;
+}
+
+void World::createStackingScene() {
+    // Immovable ground
+    Entity *e = findFreeEntity();
+    if (e == nullptr)
+        return;
+
+    e->body = RigidBody(
+        BodyType::RECTANGLE,
+        glm::vec3(25.0f, 1.0f, 1.0f),
+        glm::vec3(0.0f, -8.0f, 0.0f),
+        true,
+        0.55,
+        0.35f,
+        0.5f
+    );
+    e->isAlive = true;
 }

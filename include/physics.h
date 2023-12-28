@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "body.h"
 #include "state.h"
 #include "geometry.h"
 
@@ -16,15 +17,11 @@ struct Projection {
     f32 max;
 };
 
-struct PointLineResult {
-    glm::vec3 cp;
-    f32 distSq;
-};
-
 void checkCollisions(Game *game);
 void resolveCollisions(Game *game);
 f32 calculateMomentOfInertia(Entity *e);
 
 struct Physics {
     void resolveCollisions(std::vector<Collision>& collisions, std::vector<Entity>& entities);
+    void applyImpulses(Collision& c, RigidBody& a, RigidBody& b);
 };

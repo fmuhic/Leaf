@@ -7,6 +7,7 @@
 #include "types.h"
 
 #define MAX_VERTEX_COUNT 4
+#define RECTANGLE_VERTEX_COUNT 4
 
 struct AABB {
     glm::vec3 bottomLeft;
@@ -40,12 +41,12 @@ struct RigidBody {
     glm::vec3 vertices[MAX_VERTEX_COUNT];
     i32 vertexCount;
 
-    glm::vec3 acceleration;
-    glm::vec3 linearVelocity;
+    glm::vec3 acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 linearVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 position;
 
-    f32 angularVelocity;
-    f32 orientation;
+    f32 angularVelocity = 0.0f;
+    f32 orientation = 0.0f;
 
     f32 mass;
     f32 inverseMass;

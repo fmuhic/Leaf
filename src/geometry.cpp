@@ -1,6 +1,4 @@
 #include "geometry.h"
-#include "state.h"
-#include <iostream>
 
 using std::pair;
 using std::vector;
@@ -48,6 +46,18 @@ void Geometry::narrowPhase(std::vector<Entity>* entities) {
         else
             assert(false && "Invalid object types");
         if (c.colided) { 
+
+            // Remove this after clipping
+            if (a.body.inverseMass == 0.0f) 
+                b.body.position += c.depth * c.normal;
+            else if (b.body.inverseMass == 0.0f)
+                a.body.position -= c.depth * c.normal;
+            else {
+                a.body.position -= 0.5f * c.depth * c.normal;
+                b.body.position += 0.5f * c.depth * c.normal;
+            }
+            findPolygonPolygonContactPoints(a.body, b.body, c);
+
             c.entities = candidate;
             collisions.push_back(c);
         }
@@ -127,4 +137,64 @@ pair<f32, f32> Geometry::projectVerticesOnAxis(
     }
 
     return pair(min, max);
+}
+
+void Geometry::findPolygonPolygonContactPoints(RigidBody &a, RigidBody &b, Collision &c) {
+    f32 delta = 0.0005f;
+    f32 minSqDistance = FLT_MAX;
+    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+        glm::vec3 v = a.vertices[i];
+        for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
+            PointLineResult res = findClosestPointToLine(v, b.vertices[j], b.vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
+            if (closeTo(res.distSq, minSqDistance, delta)) {
+                if (!closeTo(&res.cp, &c.cp1, delta)) {
+                    c.cp2 = res.cp;
+                    c.contactPointsCount = 2;
+                }
+            }
+            else if (res.distSq < minSqDistance) {
+                minSqDistance = res.distSq;
+                c.cp1 = res.cp;
+                c.contactPointsCount = 1;
+            }
+        }
+    }
+    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+        glm::vec3 v = b.vertices[i];
+        for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
+            PointLineResult res = findClosestPointToLine(v, a.vertices[j], a.vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
+            if (closeTo(res.distSq, minSqDistance, delta)) {
+                if (!closeTo(&res.cp, &c.cp1, delta)) {
+                    c.cp2 = res.cp;
+                    c.contactPointsCount = 2;
+                }
+            }
+            else if (res.distSq < minSqDistance) {
+                minSqDistance = res.distSq;
+                c.cp1 = res.cp;
+                c.contactPointsCount = 1;
+            }
+        }
+    }
+
+}
+
+PointLineResult Geometry::findClosestPointToLine(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
+    glm::vec3 ab = b - a;
+    glm::vec3 ap = p - a;
+    f32 pr = glm::dot(ap, ab);
+    f32 abLengthSq = lengthSq(&ab);
+    f32 abSegSq = pr / abLengthSq;
+
+    PointLineResult r{};
+    if (abSegSq <= 0.0f)
+        r.cp = a;
+    else if (abSegSq >= 1.0f)
+        r.cp = b;
+    else
+        r.cp = a + ab * abSegSq;
+
+    r.distSq = distanceSq(&p, &r.cp);
+
+    return r;
 }

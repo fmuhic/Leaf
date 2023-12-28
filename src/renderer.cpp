@@ -222,6 +222,22 @@ void drawFrame(Renderer *r, Scene *scene, [[maybe_unused]] Game *game, World *wo
             drawEntity(shaderProgram, &r->quad, scene, &e.body.model, &color);
     }
 
+    glm::vec3 contactColor = glm::vec3(0.96f, 0.69f, 0.25f);
+    for (auto &c: world->geometry->collisions) {
+        if (c.contactPointsCount >= 1) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, c.cp1);
+            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
+            drawEntity(shaderProgram, &r->quad, scene, &model, &contactColor);
+            if (c.contactPointsCount == 2) {
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, c.cp2);
+                model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
+                drawEntity(shaderProgram, &r->quad, scene, &model, &contactColor);
+            }
+        }
+    }
+
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);
     // glBindVertexArray(r->circle.vao);
     // for (auto e: game->entities) {

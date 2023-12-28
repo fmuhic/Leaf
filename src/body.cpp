@@ -49,6 +49,9 @@ RigidBody::RigidBody(
         inverseMass = 1.0f / mass;
         inverseInertia = 1.0f / inertia;
     }
+
+    transformToWorld();
+    updateAABB();
 }
 
 void RigidBody::reset() {

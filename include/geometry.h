@@ -6,6 +6,7 @@
 #include "types.h"
 #include "state.h"
 #include "body.h"
+#include "mmath.h"
 
 #define COLLISION_COUNT ENTITY_COUNT * 4
 
@@ -21,6 +22,11 @@ struct Collision {
     glm::vec3 cp2;
 };
 
+struct PointLineResult {
+    glm::vec3 cp;
+    f32 distSq;
+};
+
 struct Geometry {
     Geometry();
 
@@ -32,9 +38,11 @@ struct Geometry {
 
     private:
 
-    bool aabbIntersect(AABB* a, AABB* b);
     std::pair<f32, f32> projectVerticesOnAxis(glm::vec3* vertices, i32 count, glm::vec3 axis);
+    PointLineResult findClosestPointToLine(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b); 
 
+    bool aabbIntersect(AABB* a, AABB* b);
+    void findPolygonPolygonContactPoints(RigidBody &a, RigidBody &b, Collision &c);
     Collision checkPlygonPolygon(RigidBody *a, RigidBody *b);
 
     std::vector<std::pair<i32, i32>> candidates; 

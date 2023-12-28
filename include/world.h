@@ -17,12 +17,12 @@ struct World {
     void createStackingScene();
 
     std::vector<Entity> entities;
+    Geometry* geometry;
 
     private:
 
     Entity* findFreeEntity();
     void processInput(MouseInput *mInput);
 
-    Geometry* geometry;
     Physics* physics;
 };
