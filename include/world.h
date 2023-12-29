@@ -12,7 +12,7 @@ struct World {
     World(i32 maxEntityCount);
     ~World();
 
-    void update(f32 dt, KeyboardInput *kInput, MouseInput *mInput);
+    void update(f32 dt, KeyboardInput &kInput, MouseInput &mInput);
     void render();
     void createStackingScene();
 
@@ -22,7 +22,7 @@ struct World {
     private:
 
     Entity* findFreeEntity();
-    void processInput(MouseInput *mInput);
+    void processInput(MouseInput &mInput);
 
     Physics* physics;
 };

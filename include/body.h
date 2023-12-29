@@ -1,13 +1,10 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-#include "glm/gtc/constants.hpp"
 #include "types.h"
 
 #define MAX_VERTEX_COUNT 4
-#define RECTANGLE_VERTEX_COUNT 4
 
 struct AABB {
     glm::vec3 bottomLeft;

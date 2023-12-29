@@ -6,6 +6,11 @@
 #include "world.h"
 
 struct VideoEntity {
+    ~VideoEntity() {
+        delete vertices;
+        delete indices;
+    }
+
     f32 *vertices;
     ui32 *indices;
     ui32 indiceCount;
@@ -16,14 +21,20 @@ struct VideoEntity {
 };
 
 struct Renderer {
+    Renderer(f32 width, f32 height);
+    ~Renderer();
+
+    void draw(Scene &scene, World &world);
+
     VideoEntity quad;
     VideoEntity circle;
     f32 screenWidth;
     f32 screenHeight;
     f32 aspectRatio;
-};
 
-Renderer * createRenderer(f32 screenWidth, f32 screenHeight);
-void setupScene(Renderer *r);
-void rendererCleanup(Renderer *r);
-void drawFrame(Renderer *r, Scene *scene, Game *game, World *world);
+    private:
+
+    void drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color);
+    void createRectangleEntity(ui32 program);
+    void createCircleEntity(ui32 program, f32 radius, i32 pointCount);
+};

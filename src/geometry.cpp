@@ -1,11 +1,12 @@
 #include "geometry.h"
+#include "body.h"
 
 using std::pair;
 using std::vector;
 
-Geometry::Geometry() {
-    candidates.reserve(COLLISION_COUNT);
-    collisions.reserve(COLLISION_COUNT);
+Geometry::Geometry(i32 maxEntityCount) {
+    candidates.reserve(maxEntityCount);
+    collisions.reserve(maxEntityCount);
 }
 
 void Geometry::broadPhase(vector<Entity>* entities) {
@@ -25,7 +26,7 @@ void Geometry::broadPhase(vector<Entity>* entities) {
             if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
                 continue;
 
-            if (!aabbIntersect(&a.aabb, &b.aabb))
+            if (!aabbIntersect(&a.body.aabb, &b.body.aabb))
                 continue;
 
             candidates.push_back(std::pair(i, j));
@@ -41,7 +42,7 @@ void Geometry::narrowPhase(std::vector<Entity>* entities) {
         Entity &b = entities->at(candidate.second);
 
         Collision c;
-        if (a.type == EntityType::RECTANGLE && b.type == EntityType::RECTANGLE)
+        if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
             c = checkPlygonPolygon(&a.body, &b.body);
         else
             assert(false && "Invalid object types");
@@ -142,10 +143,10 @@ pair<f32, f32> Geometry::projectVerticesOnAxis(
 void Geometry::findPolygonPolygonContactPoints(RigidBody &a, RigidBody &b, Collision &c) {
     f32 delta = 0.0005f;
     f32 minSqDistance = FLT_MAX;
-    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+    for (i32 i = 0; i < a.vertexCount; i++) {
         glm::vec3 v = a.vertices[i];
-        for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
-            PointLineResult res = findClosestPointToLine(v, b.vertices[j], b.vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
+        for (i32 j = 0; j < b.vertexCount; j++) {
+            PointLineResult res = findClosestPointToLine(v, b.vertices[j], b.vertices[(j + 1) % b.vertexCount]);
             if (closeTo(res.distSq, minSqDistance, delta)) {
                 if (!closeTo(&res.cp, &c.cp1, delta)) {
                     c.cp2 = res.cp;
@@ -159,10 +160,11 @@ void Geometry::findPolygonPolygonContactPoints(RigidBody &a, RigidBody &b, Colli
             }
         }
     }
-    for (i32 i = 0; i < ENTITY_VERTEX_COUNT; i++) {
+
+    for (i32 i = 0; i < b.vertexCount; i++) {
         glm::vec3 v = b.vertices[i];
-        for (i32 j = 0; j < ENTITY_VERTEX_COUNT; j++) {
-            PointLineResult res = findClosestPointToLine(v, a.vertices[j], a.vertices[(j + 1) % ENTITY_VERTEX_COUNT]);
+        for (i32 j = 0; j < a.vertexCount; j++) {
+            PointLineResult res = findClosestPointToLine(v, a.vertices[j], a.vertices[(j + 1) % a.vertexCount]);
             if (closeTo(res.distSq, minSqDistance, delta)) {
                 if (!closeTo(&res.cp, &c.cp1, delta)) {
                     c.cp2 = res.cp;

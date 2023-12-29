@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "types.h"
-#include "state.h"
+#include "entity.h"
 #include "body.h"
 #include "mmath.h"
 
@@ -12,8 +12,6 @@
 
 struct Collision {
     std::pair<i32, i32> entities;
-    Entity *a;
-    Entity *b;
     bool colided = false;
     f32 depth = 0.0f;
     glm::vec3 normal;
@@ -28,7 +26,7 @@ struct PointLineResult {
 };
 
 struct Geometry {
-    Geometry();
+    Geometry(i32 maxEntityCount);
 
     void broadPhase(std::vector<Entity>* entities);
     void narrowPhase(std::vector<Entity>* entities);

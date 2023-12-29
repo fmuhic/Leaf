@@ -10,7 +10,6 @@
 
 #include "geometry.h"
 #include "helpers.h"
-#include "game.h"
 #include "renderer.h"
 #include "state.h"
 #include "world.h"
@@ -31,9 +30,8 @@ using glm::vec3;
 
 KeyboardInput kInput{};
 MouseInput mInput{};
-Renderer *renderer;
-Scene *scene;
-Geometry *geometry;
+Renderer* renderer;
+Scene* scene;
 
 int main() {
     glfwInit();
@@ -54,7 +52,7 @@ int main() {
         cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
-    renderer = createRenderer(
+    renderer = new Renderer(
         (f32) SCREEN_WIDTH,
         (f32) SCREEN_HEIGHT
     );
@@ -65,31 +63,6 @@ int main() {
         vec3(0.0, 0.0, 0.0f),
         vec3(0.0f, 1.0f, 0.0f)
     );
-
-    Game *game = new Game{};
-
-    // Ground
-    game->entities[0].isAlive = true;
-    game->entities[0].isStatic = true;
-    game->entities[0].p = glm::vec3();
-    game->entities[0].type = EntityType::RECTANGLE;
-    game->entities[0].p = glm::vec3(0.0f, -8.0f, 0.0f);
-    game->entities[0].scale = glm::vec3(25.0f, 1.0f, 1.0f);
-    game->entities[0].color = glm::vec3(0.941, 0.953, 0.957);
-    game->entities[0].inverseMass = 0.0f;
-    game->entities[0].restitution = 0.5;
-
-    // Slope
-    game->entities[1].isAlive = true;
-    game->entities[1].isStatic = true;
-    game->entities[1].p = glm::vec3();
-    game->entities[1].type = EntityType::RECTANGLE;
-    game->entities[1].p = glm::vec3(-10.0f, 3.0f, 0.0f);
-    game->entities[1].scale = glm::vec3(10.0f, 1.0f, 1.0f);
-    game->entities[1].angle = glm::radians((f32) -25);
-    game->entities[1].color = glm::vec3(0.941, 0.953, 0.957);
-    game->entities[1].inverseMass = 0.0f;
-    game->entities[1].restitution = 0.5;
 
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
@@ -104,30 +77,19 @@ int main() {
         lag += elapsed;
         previous = current;
 
-        f32 gameStep = GAME_UPDATE_INTERVAL_SEC;
-        while (lag > gameStep) {
+        while (lag > GAME_UPDATE_INTERVAL_SEC) {
             kInput = {};
             processKeyboardInput(window);
-            processMouseInput(window);
-            f64 gameUpdateStart = glfwGetTime();
-            // updateGame(gameStep, game, &kInput, &mInput);
-            world->update(gameStep, &kInput, &mInput);
-            f64 updateDuration = glfwGetTime() - gameUpdateStart;
-            lag -= gameStep;
-
-            if (updateDuration > GAME_UPDATE_INTERVAL_SEC * 0.8f)
-                gameStep *= 1.2f;
-            else
-                gameStep = GAME_UPDATE_INTERVAL_SEC;
+        processMouseInput(window);
+            world->update(GAME_UPDATE_INTERVAL_SEC, kInput, mInput);
+            lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
-        drawFrame(renderer, scene, game, world);
+        renderer->draw(*scene, *world);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    rendererCleanup(renderer);
 
     glfwTerminate();
     return 0;

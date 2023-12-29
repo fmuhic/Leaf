@@ -54,26 +54,53 @@ ui32 createProgram(ui32 vertexShader, ui32 fragmentShader) {
     return program;
 }
 
-void createCircleEntity(VideoEntity *circle, [[maybe_unused]] ui32 program, f32 r, i32 pointCount) {
+Renderer::Renderer(f32 width, f32 height) {
+    screenWidth = width;
+    screenHeight = height;
+    aspectRatio = width / height;
+
+    glViewport(0, 0, width, height);
+
+    ui32 vertex = compileShader("./src/shaders/simple.vert", GL_VERTEX_SHADER);
+    ui32 fragment = compileShader("./src/shaders/simple.frag", GL_FRAGMENT_SHADER);
+    ui32 program = createProgram(vertex, fragment);
+
+    createCircleEntity(program, 0.5f, 32);
+    createRectangleEntity(program);
+
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+}
+
+Renderer::~Renderer() {
+    glDeleteVertexArrays(1, &quad.vao);
+    glDeleteBuffers(1, &quad.vbo);
+    glDeleteBuffers(1, &quad.ebo);
+    glDeleteProgram(quad.shaderProgram);
+}
+
+void Renderer::createCircleEntity(ui32 program, f32 r, i32 pointCount) {
     assert(pointCount > 2 && "We need at least 3 points to approximate circle");
     f32 baseAngle = 360.0f / pointCount;
     const i32 triangleCount = pointCount - 2;
     
-    circle->vertices = new f32[pointCount * 3];
+    circle.vertices = new f32[pointCount * 3];
     for (i32 i = 0; i < pointCount; ++i) {
         f32 angle = glm::radians(baseAngle * i);
-        circle->vertices[i * 3] = r * glm::cos(angle);
-        circle->vertices[i * 3 + 1] = r * glm::sin(angle);
-        circle->vertices[i * 3 + 2] = 0.0f;
+        circle.vertices[i * 3] = r * glm::cos(angle);
+        circle.vertices[i * 3 + 1] = r * glm::sin(angle);
+        circle.vertices[i * 3 + 2] = 0.0f;
     }
 
-    circle->indiceCount = triangleCount * 3;
-    circle->indices = new ui32[circle->indiceCount];
+    circle.indiceCount = triangleCount * 3;
+    circle.indices = new ui32[circle.indiceCount];
     for (i32 i = 0; i < triangleCount; ++i) {
-        circle->indices[i * 3] = 0;
-        circle->indices[i * 3 + 1] = i + 1;
-        circle->indices[i * 3 + 2] = i + 2;
+        circle.indices[i * 3] = 0;
+        circle.indices[i * 3 + 1] = i + 1;
+        circle.indices[i * 3 + 2] = i + 2;
     }
+
+    circle.shaderProgram = program;
 
     ui32 VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -83,10 +110,10 @@ void createCircleEntity(VideoEntity *circle, [[maybe_unused]] ui32 program, f32 
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, pointCount * 3 * sizeof(f32), circle->vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, pointCount * 3 * sizeof(f32), circle.vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, circle->indiceCount * sizeof(ui32), circle->indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, circle.indiceCount * sizeof(ui32), circle.indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *) 0);
     glEnableVertexAttribArray(0);
@@ -95,27 +122,27 @@ void createCircleEntity(VideoEntity *circle, [[maybe_unused]] ui32 program, f32 
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    circle->vao = VAO;
-    circle->vbo = VBO;
-    circle->ebo = EBO;
+    circle.vao = VAO;
+    circle.vbo = VBO;
+    circle.ebo = EBO;
 }
 
-void createQuadEntity(VideoEntity *quad, ui32 program) {
-    const ui32 vert_size = 12;
-    quad->vertices = new f32[vert_size]{
+void Renderer::createRectangleEntity(ui32 program) {
+    const ui32 vertexCount = 12;
+    quad.vertices = new f32[vertexCount] {
          0.5f,  0.5f, 0.0f,
          0.5f, -0.5f, 0.0f,
         -0.5f, -0.5f, 0.0f,
         -0.5f,  0.5f, 0.0f
     };
 
-    quad->indiceCount = 6;
-    quad->indices = new ui32[quad->indiceCount]{
+    quad.indiceCount = 6;
+    quad.indices = new ui32[quad.indiceCount] {
         0, 1, 3,
         1, 2, 3
     };
 
-    quad->shaderProgram = program;
+    quad.shaderProgram = program;
 
     ui32 VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -125,10 +152,10 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, vert_size * sizeof(f32), quad->vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(f32), quad.vertices, GL_STATIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, quad->indiceCount * sizeof(ui32), quad->indices, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, quad.indiceCount * sizeof(ui32), quad.indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *) 0);
     glEnableVertexAttribArray(0);
@@ -137,103 +164,68 @@ void createQuadEntity(VideoEntity *quad, ui32 program) {
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    quad->vao = VAO;
-    quad->vbo = VBO;
-    quad->ebo = EBO;
+    quad.vao = VAO;
+    quad.vbo = VBO;
+    quad.ebo = EBO;
 }
 
-Renderer * createRenderer(f32 screenWidth, f32 screenHeight) {
-    Renderer *r = new Renderer {};
-    r->screenWidth = screenWidth;
-    r->screenHeight = screenHeight;
-    r->aspectRatio = screenWidth / screenHeight;
+void Renderer::drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color) {
+    GLint modelLocation = glGetUniformLocation(program, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
 
-    ui32 quadVertex = compileShader("./src/shaders/simple.vert", GL_VERTEX_SHADER);
-    ui32 quadFragment = compileShader("./src/shaders/simple.frag", GL_FRAGMENT_SHADER);
-    ui32 quadProgram = createProgram(quadVertex, quadFragment);
+    GLint viewLocation = glGetUniformLocation(program, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(scene.camera));
 
-    createQuadEntity(&r->quad, quadProgram);
-    createCircleEntity(&r->circle, quadProgram, 0.5f, 32);
+    GLint projectionLocation = glGetUniformLocation(program, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(scene.projection));
 
-    glDeleteShader(quadVertex);
-    glDeleteShader(quadFragment);
+    GLint vertexColorLocation = glGetUniformLocation(program, "vertexColor");
+    glUniform4f(vertexColorLocation, color.x, color.y, color.z, 1.0f);
 
-    return r;
+    glDrawElements(GL_TRIANGLES, e.indiceCount, GL_UNSIGNED_INT, 0);
 }
 
-void setupScene(Renderer *r) {
-    glViewport(0, 0, r->screenWidth, r->screenHeight);
-}
-
-void rendererCleanup(Renderer *r) {
-    glDeleteVertexArrays(1, &r->quad.vao);
-    glDeleteBuffers(1, &r->quad.vbo);
-    glDeleteBuffers(1, &r->quad.ebo);
-    glDeleteProgram(r->quad.shaderProgram);
-
-    delete r;
-}
-
-// Draw this properly, first all quads then all circles
-void drawEntity(f32 shaderProgram, VideoEntity *e, Scene *scene, glm::mat4 *model, glm::vec3 *color) {
-    GLint modelLocation = glGetUniformLocation(shaderProgram, "model");
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(*model));
-
-    GLint viewLocation = glGetUniformLocation(shaderProgram, "view");
-    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(scene->camera));
-
-    GLint projectionLocation = glGetUniformLocation(shaderProgram, "projection");
-    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(scene->projection));
-
-    GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "vertexColor");
-    glUniform4f(vertexColorLocation, color->x, color->y, color->z, 1.0f);
-
-    glDrawElements(GL_TRIANGLES, e->indiceCount, GL_UNSIGNED_INT, 0);
-}
-
-void drawFrame(Renderer *r, Scene *scene, [[maybe_unused]] Game *game, World *world) {
+void Renderer::draw(Scene &scene, World &world) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    scene->cameraFollow = game->entities[0].p;
     // scene->camera = glm::lookAt(
     //     glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 1.0f),
     //     glm::vec3(scene->cameraFollow.x, scene->cameraFollow.y, 0.0f),
     //     glm::vec3(0.0f, 1.0f, 0.0f)
     // );
-    scene->camera = glm::lookAt(
+    scene.camera = glm::lookAt(
         glm::vec3(0.0f, 0.0f, 1.0f),
         glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    ui32 shaderProgram = r->quad.shaderProgram;
-    glUseProgram(shaderProgram);
+    ui32 shaderProgram = quad.shaderProgram;
+    glUseProgram(quad.shaderProgram);
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
-    glBindVertexArray(r->quad.vao);
-    glm::vec3 color = glm::vec3(0.65f, 0.41f, 0.74f);
-    for (auto e: world->entities) {
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
+    glBindVertexArray(quad.vao);
+    for (auto &e: world.entities) {
         if (e.isAlive && e.body.type == BodyType::RECTANGLE) 
-            drawEntity(shaderProgram, &r->quad, scene, &e.body.model, &color);
+            drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
     }
 
     glm::vec3 contactColor = glm::vec3(0.96f, 0.69f, 0.25f);
-    for (auto &c: world->geometry->collisions) {
+    for (auto &c: world.geometry->collisions) {
         if (c.contactPointsCount >= 1) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, c.cp1);
             model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
-            drawEntity(shaderProgram, &r->quad, scene, &model, &contactColor);
+            drawEntity(shaderProgram, quad, scene, model, contactColor);
             if (c.contactPointsCount == 2) {
                 glm::mat4 model = glm::mat4(1.0f);
                 model = glm::translate(model, c.cp2);
                 model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
-                drawEntity(shaderProgram, &r->quad, scene, &model, &contactColor);
+                drawEntity(shaderProgram, quad, scene, model, contactColor);
             }
         }
     }
