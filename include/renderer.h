@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 #include "types.h"
-#include "world.h"
+#include "game.h"
 
 struct Scene {
     glm::mat4 camera;
@@ -30,7 +30,7 @@ struct Renderer {
     Renderer(f32 width, f32 height);
     ~Renderer();
 
-    void draw(Scene &scene, World &world);
+    void draw(Scene &scene, Game &game);
 
     VideoEntity quad;
     VideoEntity circle;

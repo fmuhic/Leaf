@@ -12,7 +12,7 @@
 #include "helpers.h"
 #include "renderer.h"
 #include "input.h"
-#include "world.h"
+#include "game.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processKeyboardInput(GLFWwindow *window);
@@ -22,6 +22,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define GAME_UPDATE_INTERVAL_SEC 0.002f
+#define ENTITY_COUNT 50
 
 using std::cout;
 using std::endl;
@@ -64,8 +65,8 @@ int main() {
 
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    World *world = new World(50);
-    world->createStackingScene();
+    Game *game = new Game(ENTITY_COUNT);
+    game->createStackingScene();
 
     MouseInput mInput;
 
@@ -80,11 +81,11 @@ int main() {
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
             processKeyboardInput(window);
             processMouseInput(window, mInput);
-            world->update(GAME_UPDATE_INTERVAL_SEC, mInput);
+            game->update(GAME_UPDATE_INTERVAL_SEC, mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
-        renderer->draw(*scene, *world);
+        renderer->draw(*scene, *game);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

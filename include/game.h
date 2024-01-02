@@ -8,9 +8,9 @@
 #include "types.h"
 #include "input.h"
 
-struct World {
-    World(i32 maxEntityCount);
-    ~World();
+struct Game {
+    Game(i32 maxEntityCount);
+    ~Game();
 
     void update(f32 dt, MouseInput &mInput);
     void render();

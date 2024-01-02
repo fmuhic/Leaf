@@ -1,9 +1,9 @@
-#include "world.h"
+#include "game.h"
 #include "body.h"
 #include "geometry.h"
 #include "physics.h"
 
-World::World(i32 maxEntityCount) {
+Game::Game(i32 maxEntityCount) {
     geometry = new Geometry(maxEntityCount);
     physics = new Physics();
 
@@ -12,12 +12,12 @@ World::World(i32 maxEntityCount) {
         entities.push_back(Entity{});
 }
 
-World::~World() {
+Game::~Game() {
     delete geometry;
     delete physics;
 }
 
-void World::update(f32 dt, MouseInput &mInput) {
+void Game::update(f32 dt, MouseInput &mInput) {
     processInput(mInput);
     for (auto &e: entities) {
         if (!e.isAlive)
@@ -32,7 +32,7 @@ void World::update(f32 dt, MouseInput &mInput) {
     physics->resolveCollisions(geometry->collisions, entities);
 }
 
-void World::processInput(MouseInput &mInput) {
+void Game::processInput(MouseInput &mInput) {
     if (mInput.clicked(MouseButton::LEFT)) {
         Entity* e = findFreeEntity();
         if (e == nullptr)
@@ -44,14 +44,14 @@ void World::processInput(MouseInput &mInput) {
     }
 }
 
-Entity* World::findFreeEntity() {
+Entity* Game::findFreeEntity() {
     for (auto &e: entities) 
         if (!e.isAlive)
             return &e;
     return nullptr;
 }
 
-void World::createStackingScene() {
+void Game::createStackingScene() {
     Entity *e = findFreeEntity();
     if (e == nullptr)
         return;

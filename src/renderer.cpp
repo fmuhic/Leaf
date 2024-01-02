@@ -184,7 +184,7 @@ void Renderer::drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &
     glDrawElements(GL_TRIANGLES, e.indiceCount, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::draw(Scene &scene, World &world) {
+void Renderer::draw(Scene &scene, Game &game) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -208,14 +208,14 @@ void Renderer::draw(Scene &scene, World &world) {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
     glBindVertexArray(quad.vao);
-    for (auto &e: world.entities) {
+    for (auto &e: game.entities) {
         if (e.isAlive && e.body.type == BodyType::RECTANGLE) 
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
     }
 
     // For debugging
     glm::vec3 contactColor = glm::vec3(0.96f, 0.69f, 0.25f);
-    for (auto &c: world.geometry->collisions) {
+    for (auto &c: game.geometry->collisions) {
         if (c.contactPointsCount >= 1) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, c.cp1);
