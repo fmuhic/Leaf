@@ -11,7 +11,6 @@
 #include "helpers.h"
 #include "renderer.h"
 #include "loader.h"
-#include "state.h"
 
 using std::string;
 using std::cout;
@@ -214,6 +213,7 @@ void Renderer::draw(Scene &scene, World &world) {
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
     }
 
+    // For debugging
     glm::vec3 contactColor = glm::vec3(0.96f, 0.69f, 0.25f);
     for (auto &c: world.geometry->collisions) {
         if (c.contactPointsCount >= 1) {

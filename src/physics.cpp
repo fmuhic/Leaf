@@ -2,7 +2,6 @@
 
 using std::vector;
 
-[[maybe_unused]]
 void Physics::resolveCollisions(vector<Collision>& collisions, vector<Entity>& entities) {
     for (auto &c: collisions) {
         [[maybe_unused]] Entity &a = entities.at(c.entities.first);
@@ -64,9 +63,9 @@ void Physics::applyImpulses(Collision& c, RigidBody& a, RigidBody& b) {
         glm::vec3 pb = cp[i] - b.position;
 
         a.linearVelocity -= impulses[i] * a.inverseMass;
-        a.angularVelocity -= cross(&pa, &impulses[i]) * a.inverseInertia;
+        a.angularVelocity -= cross(pa, impulses[i]) * a.inverseInertia;
         b.linearVelocity += impulses[i] * b.inverseMass;
-        b.angularVelocity += cross(&pb, &impulses[i]) * b.inverseInertia;
+        b.angularVelocity += cross(pb, impulses[i]) * b.inverseInertia;
     }
 
     glm::vec3 frictionImpulses[2]{};
@@ -91,8 +90,7 @@ void Physics::applyImpulses(Collision& c, RigidBody& a, RigidBody& b) {
         glm::vec3 tangent = vRelative - glm::dot(vRelative, c.normal) * c.normal;
 
         glm::vec3 zero = glm::vec3(0.0f, 0.0f, 0.0f);
-        f32 delta = 0.005;
-        if (closeTo(&tangent, &zero, delta))
+        if (closeTo(tangent, zero, DELTA_ERROR))
             continue;
         else
             tangent = glm::normalize(tangent);
@@ -115,8 +113,8 @@ void Physics::applyImpulses(Collision& c, RigidBody& a, RigidBody& b) {
         glm::vec3 pb = cp[i] - b.position;
 
         a.linearVelocity -= frictionImpulses[i] * a.inverseMass;
-        a.angularVelocity -= cross(&pa, &frictionImpulses[i]) * a.inverseInertia;
+        a.angularVelocity -= cross(pa, frictionImpulses[i]) * a.inverseInertia;
         b.linearVelocity += frictionImpulses[i] * b.inverseMass;
-        b.angularVelocity += cross(&pb, &frictionImpulses[i]) * b.inverseInertia;
+        b.angularVelocity += cross(pb, frictionImpulses[i]) * b.inverseInertia;
     }
 }

@@ -2,8 +2,9 @@
 
 #include <vector>
 
+#include "types.h"
+#include "const.h"
 #include "body.h"
-#include "state.h"
 #include "geometry.h"
 
 struct Physics {

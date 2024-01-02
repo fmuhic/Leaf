@@ -3,7 +3,6 @@
 
 #include "loader.h"
 #include "types.h"
-#include "state.h"
 #include "helpers.h"
 
 using std::string;

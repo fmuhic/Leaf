@@ -1,6 +1,7 @@
 #include "const.h"
 
 f32 PI = 3.141592f;
+f32 DELTA_ERROR = 0.0005f;
 
 std::vector<glm::vec3> COLORS {
     glm::vec3(0.80f, 0.38f, 0.33f),

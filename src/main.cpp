@@ -11,25 +11,22 @@
 #include "geometry.h"
 #include "helpers.h"
 #include "renderer.h"
-#include "state.h"
+#include "input.h"
 #include "world.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processKeyboardInput(GLFWwindow *window);
-void processMouseInput(GLFWwindow *window);
+void processMouseInput(GLFWwindow *window, MouseInput &input);
 glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define GAME_UPDATE_INTERVAL_SEC 0.002f
 
-using std::string;
 using std::cout;
 using std::endl;
 using glm::vec3;
 
-KeyboardInput kInput{};
-MouseInput mInput{};
 Renderer* renderer;
 Scene* scene;
 
@@ -52,6 +49,7 @@ int main() {
         cout << "Failed to initialize GLAD" << endl;
         return -1;
     }
+
     renderer = new Renderer(
         (f32) SCREEN_WIDTH,
         (f32) SCREEN_HEIGHT
@@ -69,6 +67,8 @@ int main() {
     World *world = new World(50);
     world->createStackingScene();
 
+    MouseInput mInput;
+
     f64 previous = glfwGetTime();
     f64 lag = 0.0;
     while (!glfwWindowShouldClose(window)) {
@@ -78,10 +78,9 @@ int main() {
         previous = current;
 
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
-            kInput = {};
             processKeyboardInput(window);
-        processMouseInput(window);
-            world->update(GAME_UPDATE_INTERVAL_SEC, kInput, mInput);
+            processMouseInput(window, mInput);
+            world->update(GAME_UPDATE_INTERVAL_SEC, mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
@@ -98,55 +97,26 @@ int main() {
 void processKeyboardInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        kInput.leftPressed = true;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        kInput.rightPressed = true;
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        kInput.upPressed = true;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        kInput.downPressed = true;
 }
 
-void processMouseInput(GLFWwindow *window) {
+void processMouseInput(GLFWwindow *window, MouseInput &input) {
     int leftMouse = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     int rightMouse = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
     if (leftMouse == GLFW_RELEASE)
-        mInput.leftClickReleased = true;
-    else
-        mInput.leftClickPressed = false;
-    
-    if (mInput.leftClickPressed && mInput.leftClickReleased)
-        mInput.leftClickClicked = true;
-    else
-        mInput.leftClickClicked = false;
-
-    if (leftMouse == GLFW_PRESS)
-        mInput.leftClickPressed = true;
-    else
-        mInput.leftClickPressed = false;
-
+        input.setState(MouseButton::LEFT, MouseAction::RELEASE);
+    else if (leftMouse == GLFW_PRESS)
+        input.setState(MouseButton::LEFT, MouseAction::PRESS);
 
     if (rightMouse == GLFW_RELEASE)
-        mInput.rightClickReleased = true;
-    else
-        mInput.rightClickPressed = false;
-    
-    if (mInput.rightClickPressed && mInput.rightClickReleased)
-        mInput.rightClickClicked = true;
-    else
-        mInput.rightClickClicked = false;
-
-    if (rightMouse == GLFW_PRESS)
-        mInput.rightClickPressed = true;
-    else
-        mInput.rightClickPressed = false;
+        input.setState(MouseButton::RIGHT, MouseAction::RELEASE);
+    else if (rightMouse == GLFW_PRESS)
+        input.setState(MouseButton::RIGHT, MouseAction::PRESS);
 
     f64 x, y;
     glfwGetCursorPos(window, &x, &y);
     glm::vec3 worldCoordinates = screenToWorld(glm::vec3(x, y, 0.0f), scene, renderer->screenWidth, renderer->screenHeight);
-    mInput.position = glm::vec3(
+    input.position = glm::vec3(
         worldCoordinates.x,
         worldCoordinates.y,
         0.0f

@@ -1,5 +1,4 @@
 #include "body.h"
-#include "state.h"
 
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,
@@ -106,7 +105,7 @@ void RigidBody::updateAABB() {
             f32 yMin = vertices[0].y;
             f32 yMax = vertices[0].y;
 
-            for (i32 i = 1; i < ENTITY_VERTEX_COUNT; i++) {
+            for (i32 i = 1; i < vertexCount; i++) {
                 glm::vec3 v = vertices[i];
                 if (v.x < xMin) xMin = v.x;
                 if (v.x > xMax) xMax = v.x;

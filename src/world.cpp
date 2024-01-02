@@ -17,7 +17,7 @@ World::~World() {
     delete physics;
 }
 
-void World::update(f32 dt, [[maybe_unused]] KeyboardInput &kInput, MouseInput &mInput) {
+void World::update(f32 dt, MouseInput &mInput) {
     processInput(mInput);
     for (auto &e: entities) {
         if (!e.isAlive)
@@ -27,13 +27,13 @@ void World::update(f32 dt, [[maybe_unused]] KeyboardInput &kInput, MouseInput &m
         e.despawnIfOutOfBounds();
     }
 
-    geometry->broadPhase(&entities);
-    geometry->narrowPhase(&entities);
+    geometry->broadPhase(entities);
+    geometry->narrowPhase(entities);
     physics->resolveCollisions(geometry->collisions, entities);
 }
 
 void World::processInput(MouseInput &mInput) {
-    if (mInput.leftClickClicked) {
+    if (mInput.clicked(MouseButton::LEFT)) {
         Entity* e = findFreeEntity();
         if (e == nullptr)
             return;

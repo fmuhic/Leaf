@@ -2,8 +2,14 @@
 
 #include <glm/glm.hpp>
 #include "types.h"
-#include "state.h"
 #include "world.h"
+
+struct Scene {
+    glm::mat4 camera;
+    glm::vec3 cameraFollow;
+    glm::mat4 projection;
+    glm::mat4 inverseProjectionView;
+};
 
 struct VideoEntity {
     ~VideoEntity() {
