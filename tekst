@@ -1,0 +1,7 @@
+Email Google Postamster Fetch Stats Job 4
+Fetch traffic stats from Google postmaster
+http://infobip-email-postmaster-fr4.ibfr4eq.local/rmi/GooglePostmaster/fetchTrafficStats
+[{ "id": 3, "count": 4 }]
+Crontab Pattern
+0 0 */2,0 * * *
+

@@ -1,8 +1,11 @@
 #include "geometry.h"
 #include "body.h"
+#include "leaf_math.h"
 
 using std::pair;
 using std::vector;
+using std::fabs;
+using glm::vec3;
 
 Geometry::Geometry(i32 maxEntityCount) {
     candidates.reserve(maxEntityCount);
@@ -45,20 +48,10 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
         if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
             c = checkPlygonPolygon(a.body, b.body);
         else
-            assert(false && "Invalid object types");
+            assert(false && "Invalid object type");
+
         if (c.colided) { 
-
-            // Remove this after clipping
-            if (a.body.inverseMass == 0.0f) 
-                b.body.position += c.depth * c.normal;
-            else if (b.body.inverseMass == 0.0f)
-                a.body.position -= c.depth * c.normal;
-            else {
-                a.body.position -= 0.5f * c.depth * c.normal;
-                b.body.position += 0.5f * c.depth * c.normal;
-            }
-            findPolygonPolygonContactPoints(a.body, b.body, c);
-
+            findContactPoints(a.body, b.body, c);
             c.entities = candidate;
             collisions.push_back(c);
         }
@@ -127,42 +120,85 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
     return c;
 }
 
-void Geometry::findPolygonPolygonContactPoints(RigidBody &a, RigidBody &b, Collision &c) {
-    f32 minSqDistance = FLT_MAX;
-    for (i32 i = 0; i < a.vertexCount; i++) {
-        glm::vec3 v = a.vertices[i];
-        for (i32 j = 0; j < b.vertexCount; j++) {
-            PointLineResult res = findClosestPointToLine(v, b.vertices[j], b.vertices[(j + 1) % b.vertexCount]);
-            if (closeTo(res.distSq, minSqDistance, DELTA_ERROR)) {
-                if (!closeTo(res.cp, c.cp1, DELTA_ERROR)) {
-                    c.cp2 = res.cp;
-                    c.contactPointsCount = 2;
-                }
-            }
-            else if (res.distSq < minSqDistance) {
-                minSqDistance = res.distSq;
-                c.cp1 = res.cp;
-                c.contactPointsCount = 1;
-            }
+void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& c) {
+    Edge aEdge = findContactEdge(a.vertices, a.vertexCount, c.normal);
+    Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -c.normal);
+
+    Edge referenceEdge, incidentEdge;
+    if (fabs(dot(aEdge.second - aEdge.first, c.normal)) <= fabs(dot(bEdge.second - bEdge.first, c.normal))) {
+        referenceEdge = aEdge;
+        incidentEdge = bEdge;
+    } else {
+        referenceEdge = bEdge;
+        incidentEdge = aEdge;
+    }
+
+    vec3 referenceVector = normalize(referenceEdge.first - referenceEdge.second);
+    f32 offset = dot(referenceEdge.second, referenceVector); 
+    Contact contact = clipEdge(incidentEdge.first, incidentEdge.second, referenceVector, offset);
+
+    offset = dot(referenceEdge.first, referenceVector); 
+    contact = clipEdge(contact.points[0], contact.points[1], -referenceVector, -offset);
+
+    vec3 referenceNormal = -vec3(-referenceVector.y, referenceVector.x, 0.0f);
+    f32 max = dot(referenceEdge.max, referenceNormal);
+
+    c.contactCount = 0;
+    if (dot(contact.points[0], referenceNormal) <= max) {
+        c.points[c.contactCount++] = contact.points[0];
+    }
+
+    if (dot(contact.points[1], referenceNormal) <= max) {
+        c.points[c.contactCount++] = contact.points[1];
+    }
+}
+
+Contact Geometry::clipEdge(
+    glm::vec3& p1,
+    glm::vec3& p2,
+    glm::vec3 referenceEdge,
+    f32 referenceOffset
+){
+    Contact c{};
+    f32 d1 = dot(p1, referenceEdge) - referenceOffset;
+    f32 d2 = dot(p2, referenceEdge) - referenceOffset;
+
+    if (d1 >= 0.0f)
+        c.points[c.count++] = p1;
+
+    if (d2 >= 0.0f)
+        c.points[c.count++] = p2;
+
+    if (d1 * d2 < 0.0f) {
+        vec3 midPoint = ((p2 - p1) * d1 / (d1 - d2)) + p1;
+        c.points[c.count++] = midPoint;
+    }
+    assert(c.count == 2 && "We always need to end up with 2 contact points");
+
+    return c;
+}
+
+Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal) {
+    assert(count > 0 && "Minimum vertex count should be 1");
+    f32 maxProjection = -FLT_MAX;
+    i32 index = -1;
+    for (i32 i = 0; i < count; i++) {
+        f32 projection = glm::dot(vertices[i], normal);
+        if (projection > maxProjection) {
+            maxProjection = projection;
+            index = i;
         }
     }
 
-    for (i32 i = 0; i < b.vertexCount; i++) {
-        glm::vec3 v = b.vertices[i];
-        for (i32 j = 0; j < a.vertexCount; j++) {
-            PointLineResult res = findClosestPointToLine(v, a.vertices[j], a.vertices[(j + 1) % a.vertexCount]);
-            if (closeTo(res.distSq, minSqDistance, DELTA_ERROR)) {
-                if (!closeTo(res.cp, c.cp1, DELTA_ERROR)) {
-                    c.cp2 = res.cp;
-                    c.contactPointsCount = 2;
-                }
-            }
-            else if (res.distSq < minSqDistance) {
-                minSqDistance = res.distSq;
-                c.cp1 = res.cp;
-                c.contactPointsCount = 1;
-            }
-        }
-    }
+    vec3 v = vertices[index];
+    vec3 v0 = vertices[modFloor(index - 1, count)];
+    vec3 v1 = vertices[modFloor(index + 1, count)];
 
+    glm::vec3 leftEdge = normalize(v - v1);
+    glm::vec3 rightEdge = normalize(v - v0);
+
+    if (dot(rightEdge, normal) <= dot(leftEdge, normal))
+        return Edge { v, v0, v };
+    else
+        return Edge { v, v, v1 };
 }

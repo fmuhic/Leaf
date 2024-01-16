@@ -1,5 +1,9 @@
 #include "leaf_math.h"
 
+i32 modFloor(i32 num, i32 max) {
+    return ((num % max) + max) % max;
+}
+
 f32 lengthSq(glm::vec3 &a) {
     return a.x * a.x + a.y * a.y;
 }

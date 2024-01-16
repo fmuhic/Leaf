@@ -8,6 +8,7 @@
 #include "geometry.h"
 
 struct Physics {
+    void positionSolver(Collision& c, RigidBody& a, RigidBody& b);
     void resolveCollisions(std::vector<Collision>& collisions, std::vector<Entity>& entities);
     void applyImpulses(Collision& c, RigidBody& a, RigidBody& b);
 };
