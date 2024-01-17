@@ -24,6 +24,7 @@ struct Collision {
     glm::vec3 normal;
     i32 contactCount = 0;
     glm::vec3 points[MAX_CONTACT_POINTS];
+    f32 normalImpulseLen[MAX_CONTACT_POINTS];
 };
 
 struct Edge {
