@@ -1,33 +1,24 @@
 #include "physics.h"
 #include "geometry.h"
-#include "helpers.h"
+#include <cmath>
+#include <iostream>
 
 using std::vector;
 
-void Physics::resolveCollisions(vector<Collision>& collisions, vector<Entity>& entities) {
+void Physics::resolveCollisions(vector<Collision>& collisions, vector<Entity>& entities, f32 dtInv) {
     for (auto &c: collisions) {
-        [[maybe_unused]] Entity &a = entities.at(c.entities.first);
-        [[maybe_unused]] Entity &b = entities.at(c.entities.second);
+        Entity &a = entities.at(c.entities.first);
+        Entity &b = entities.at(c.entities.second);
 
-        positionSolver(c, a.body, b.body);
-        applyNormalImpulse(c, a.body, b.body);
-        applyFrictionImpulse(c, a.body, b.body);
+        for (i32 i = 0; i < correctionCount; i++) {
+            applyNormalImpulse(c, a.body, b.body, dtInv);
+            applyFrictionImpulse(c, a.body, b.body);
+        }
     }
 }
 
-void Physics::positionSolver(Collision& c, RigidBody& a, RigidBody& b) {
-    if (a.inverseMass == 0.0f) 
-        b.position += c.depth * c.normal;
-    else if (b.inverseMass == 0.0f)
-        a.position -= c.depth * c.normal;
-    else {
-        a.position -= 0.5f * c.depth * c.normal;
-        b.position += 0.5f * c.depth * c.normal;
-    }
-}
-
-void Physics::applyNormalImpulse(Collision& c, RigidBody& a, RigidBody& b) {
-    f32 e = 0.0f;
+void Physics::applyNormalImpulse(Collision& c, RigidBody& a, RigidBody& b, f32 dtInv) {
+    f32 bias = -positionCorrectionFactor * dtInv * fmin(0.0f, -c.depth + allowedPenetration);
 
     for (i32 i = 0; i < c.contactCount; i++) {
         glm::vec3 pa = c.points[i] - a.position;
@@ -46,14 +37,12 @@ void Physics::applyNormalImpulse(Collision& c, RigidBody& a, RigidBody& b) {
 
         f32 contactVelocityLen = glm::dot(vRelative, c.normal);
 
-        if (contactVelocityLen > 0.0f)
-            continue;
-
-        f32 j = -(1 + e) * contactVelocityLen /
+        f32 j = (-contactVelocityLen + bias) /
             (a.inverseMass + b.inverseMass +
              pow(glm::dot(pap, c.normal), 2) * a.inverseInertia +
              pow(glm::dot(pbp, c.normal), 2) * b.inverseInertia);
 
+        j = std::fmax(j, 0.0f);
         j /= (f32) c.contactCount;
 
         c.normalImpulseLen[i] = j;
@@ -106,7 +95,6 @@ void Physics::applyFrictionImpulse(Collision& c, RigidBody& a, RigidBody& b) {
              pow(glm::dot(pbp, tangent), 2) * b.inverseInertia);
 
         jf /= (f32) c.contactCount;
-
         if (fabs(jf) < c.normalImpulseLen[i] * staticFriction)
             frictionImpulses[i] = jf * tangent;
         else

@@ -26,6 +26,11 @@ bool closeTo(glm::vec3 &a, glm::vec3 &b, f32 delta) {
     return closeTo(a.x, b.x, delta) && closeTo(a.y, b.y, delta);
 }
 
+f32 clamp(f32 val, f32 low, f32 high) {
+	return fmax(low, fmin(val, high));
+}
+
+
 PointLineResult findClosestPointToLine(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
     glm::vec3 ab = b - a;
     glm::vec3 ap = p - a;

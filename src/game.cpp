@@ -27,9 +27,18 @@ void Game::update(f32 dt, MouseInput &mInput) {
         e.despawnIfOutOfBounds();
     }
 
+    f32 dtInv = dt > 0.0f ? 1.0f / dt : 0.0f;
+
     geometry->broadPhase(entities);
     geometry->narrowPhase(entities);
-    physics->resolveCollisions(geometry->collisions, entities);
+    physics->resolveCollisions(geometry->collisions, entities, dtInv);
+
+    for (auto &e: entities) {
+        if (!e.isAlive)
+            continue;
+
+        e.body.updatePosition(dt);
+    }
 }
 
 void Game::processInput(MouseInput &mInput) {

@@ -1,4 +1,5 @@
 #include "body.h"
+#include "helpers.h"
 
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,
@@ -65,16 +66,16 @@ void RigidBody::step(f32 dt) {
     if (inverseMass == 0.0f)
         return;
 
-    glm::vec3 p0 = position;
-    glm::vec3 v0 = linearVelocity;
-
     glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
-    linearVelocity = (acceleration + gravity) * dt + v0;
-    position = (acceleration + gravity) * dt * dt * 0.5f + linearVelocity * dt + p0;
-    orientation += angularVelocity * dt;
+    linearVelocity += (acceleration + gravity) * dt;
 
     transformToWorld();
     updateAABB();
+}
+
+void RigidBody::updatePosition(f32 dt) {
+    position += linearVelocity * dt;
+    orientation += angularVelocity * dt;
 }
 
 void RigidBody::transformToWorld() {

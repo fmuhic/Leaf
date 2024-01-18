@@ -30,6 +30,7 @@ struct RigidBody {
 
     void reset();
     void step(f32 dt);
+    void updatePosition(f32 dt);
 
     BodyType type ;
     AABB aabb;
