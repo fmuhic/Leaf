@@ -15,7 +15,15 @@ f32 distanceSq(glm::vec3 &a, glm::vec3 &b) {
 }
 
 f32 cross(glm::vec3 &a, glm::vec3 &b) {
-    return (a.x * b.y) - (a.y * b.x);
+    return a.x * b.y - a.y * b.x;
+}
+
+glm::vec3 cross(glm::vec3 &v, f32 a) {
+    return glm::vec3(a * v.y, -a * v.x, 0.0f);
+}
+
+glm::vec3 cross(f32 a, glm::vec3 &v) {
+    return glm::vec3(-a * v.y, a * v.x, 0.0f);
 }
 
 bool closeTo(f32 a, f32 b, f32 delta) {

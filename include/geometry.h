@@ -12,19 +12,30 @@
 #define MAX_CONTACT_POINTS 2
 #define COLLISION_COUNT ENTITY_COUNT * 4
 
-struct Contact {
+struct EdgePoints {
     i32 count = 0;
     glm::vec3 points[2];
+};
+
+struct Contact {
+    glm::vec3 point;
+    f32 depth;
+
+    f32 inverseNormalMass;
+    f32 inverseTangentMass;
+    f32 positionCorrection;
+
+    f32 normalImpulseLen;
+    f32 friction;
 };
 
 struct Collision {
     std::pair<i32, i32> entities;
     bool colided = false;
-    f32 depth = 0.0f;
     glm::vec3 normal;
+    glm::vec3 tangent;
     i32 contactCount = 0;
-    glm::vec3 points[MAX_CONTACT_POINTS];
-    f32 normalImpulseLen[MAX_CONTACT_POINTS];
+    Contact contacts[MAX_CONTACT_POINTS];
 };
 
 struct Edge {
@@ -49,7 +60,7 @@ struct Geometry {
     void findPolygonPolygonContactPoints(RigidBody& a, RigidBody& b, Collision& c);
     void findContactPoints(RigidBody& a, RigidBody& b, Collision& c);
     Edge findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal);
-    Contact clipEdge(glm::vec3& first, glm::vec3& second, glm::vec3 referenceEdge, f32 referenceOffset);
+    EdgePoints clipEdge(glm::vec3& first, glm::vec3& second, glm::vec3 referenceEdge, f32 referenceOffset);
 
     std::vector<std::pair<i32, i32>> candidates; 
 };

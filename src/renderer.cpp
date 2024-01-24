@@ -218,7 +218,7 @@ void Renderer::draw(Scene &scene, Game &game) {
     for (auto &c: game.geometry->collisions) {
         for (i32 i = 0; i < c.contactCount; i++) {
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, c.points[i]);
+            model = glm::translate(model, c.contacts[i].point);
             model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
             drawEntity(shaderProgram, quad, scene, model, contactColor);
         }

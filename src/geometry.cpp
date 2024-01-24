@@ -15,7 +15,7 @@ Geometry::Geometry(i32 maxEntityCount) {
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
 
-    // Switch to spatial partitioning
+    // Todo(Fudo): Switch to spatial partitioning
     for (ui32 i = 0; i < entities.size() - 1; ++i) {
         Entity &a = entities.at(i);
         if (!a.isAlive)
@@ -70,10 +70,10 @@ bool Geometry::aabbIntersect(AABB& a, AABB& b) {
     return true;
 }
 
-// Optimize for rectangle to check only 2 axis per body  
+// Todo(Fudo): Optimize for rectangle to check only 2 axis per body  
 Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
     Collision c{};
-    c.depth = FLT_MAX;
+    f32 minDepth = FLT_MAX;
 
     for (i32 i = 0; i < a.vertexCount; i++) {
         glm::vec3 edge = a.vertices[(i + 1) % a.vertexCount] - a.vertices[i];
@@ -87,8 +87,8 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
         }
 
         f32 depth = fmin(ap.second - bp.first, bp.second - ap.first);
-        if (depth < c.depth) {
-            c.depth = depth;
+        if (depth < minDepth) {
+            minDepth = depth;
             c.normal = axis;
         }
     }
@@ -105,13 +105,16 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
         }
 
         f32 depth = fmin(ap.second - bp.first, bp.second - ap.first);
-        if (depth < c.depth) {
-            c.depth = depth;
+        if (depth < minDepth) {
+            minDepth = depth;
             c.normal = axis;
         }
     }
 
     c.colided = true;
+    // Todo(Fudo): Properly implement depth
+    c.contacts[0].depth = minDepth;
+    c.contacts[1].depth = minDepth;
 
     glm::vec3 ab = b.position - a.position;
     if (glm::dot(ab, c.normal) < 0.0f)
@@ -120,12 +123,12 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
     return c;
 }
 
-void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& c) {
-    Edge aEdge = findContactEdge(a.vertices, a.vertexCount, c.normal);
-    Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -c.normal);
+void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collision) {
+    Edge aEdge = findContactEdge(a.vertices, a.vertexCount, collision.normal);
+    Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -collision.normal);
 
     Edge referenceEdge, incidentEdge;
-    if (fabs(dot(aEdge.second - aEdge.first, c.normal)) <= fabs(dot(bEdge.second - bEdge.first, c.normal))) {
+    if (fabs(dot(aEdge.second - aEdge.first, collision.normal)) <= fabs(dot(bEdge.second - bEdge.first, collision.normal))) {
         referenceEdge = aEdge;
         incidentEdge = bEdge;
     } else {
@@ -135,7 +138,7 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& c) {
 
     vec3 referenceVector = normalize(referenceEdge.first - referenceEdge.second);
     f32 offset = dot(referenceEdge.second, referenceVector); 
-    Contact contact = clipEdge(incidentEdge.first, incidentEdge.second, referenceVector, offset);
+    EdgePoints contact = clipEdge(incidentEdge.first, incidentEdge.second, referenceVector, offset);
 
     offset = dot(referenceEdge.first, referenceVector); 
     contact = clipEdge(contact.points[0], contact.points[1], -referenceVector, -offset);
@@ -143,23 +146,23 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& c) {
     vec3 referenceNormal = -vec3(-referenceVector.y, referenceVector.x, 0.0f);
     f32 max = dot(referenceEdge.max, referenceNormal);
 
-    c.contactCount = 0;
+    collision.contactCount = 0;
     if (dot(contact.points[0], referenceNormal) <= max) {
-        c.points[c.contactCount++] = contact.points[0];
+        collision.contacts[collision.contactCount++].point = contact.points[0];
     }
 
     if (dot(contact.points[1], referenceNormal) <= max) {
-        c.points[c.contactCount++] = contact.points[1];
+        collision.contacts[collision.contactCount++].point = contact.points[1];
     }
 }
 
-Contact Geometry::clipEdge(
+EdgePoints Geometry::clipEdge(
     glm::vec3& p1,
     glm::vec3& p2,
     glm::vec3 referenceEdge,
     f32 referenceOffset
 ){
-    Contact c{};
+    EdgePoints c{};
     f32 d1 = dot(p1, referenceEdge) - referenceOffset;
     f32 d2 = dot(p2, referenceEdge) - referenceOffset;
 

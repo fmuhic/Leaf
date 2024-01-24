@@ -1,7 +1,8 @@
-#include "physics.h"
-#include "geometry.h"
 #include <cmath>
 #include <iostream>
+
+#include "physics.h"
+#include "geometry.h"
 
 using std::vector;
 
@@ -10,49 +11,59 @@ void Physics::resolveCollisions(vector<Collision>& collisions, vector<Entity>& e
         Entity &a = entities.at(c.entities.first);
         Entity &b = entities.at(c.entities.second);
 
+        prepareContacts(c, a.body, b.body, dtInv);
+
         for (i32 i = 0; i < correctionCount; i++) {
-            applyNormalImpulse(c, a.body, b.body, dtInv);
+            applyNormalImpulse(c, a.body, b.body);
             applyFrictionImpulse(c, a.body, b.body);
         }
     }
 }
 
-void Physics::applyNormalImpulse(Collision& c, RigidBody& a, RigidBody& b, f32 dtInv) {
-    f32 bias = -positionCorrectionFactor * dtInv * fmin(0.0f, -c.depth + allowedPenetration);
+void Physics::prepareContacts(Collision& collision, RigidBody& a, RigidBody& b, f32 dtInv) {
+    for (i32 i = 0; i < collision.contactCount; i++) {
+        Contact& contact = collision.contacts[i];
 
-    for (i32 i = 0; i < c.contactCount; i++) {
-        glm::vec3 pa = c.points[i] - a.position;
-        glm::vec3 pb = c.points[i] - b.position;
+        contact.positionCorrection = -positionCorrectionFactor * dtInv * fmin(0.0f, -contact.depth + allowedPenetration);
+        contact.friction = (a.dynamicFriction + b.dynamicFriction) * 0.5f;
+
+        glm::vec3 pa = contact.point - a.position;
+        glm::vec3 pb = contact.point - b.position;
 
         glm::vec3 pap = glm::vec3(-pa.y, pa.x, 0.0f);
         glm::vec3 pbp = glm::vec3(-pb.y, pb.x, 0.0f);
 
-        glm::vec3 omegaA = a.angularVelocity * pap;
-        glm::vec3 omegaB = b.angularVelocity * pbp;
+        contact.inverseNormalMass = 1.0f / (
+            a.inverseMass + b.inverseMass +
+            pow(glm::dot(pap, collision.normal), 2) * a.inverseInertia +
+            pow(glm::dot(pbp, collision.normal), 2) * b.inverseInertia
+        );
 
-        glm::vec3 va = a.linearVelocity + omegaA; 
-        glm::vec3 vb = b.linearVelocity + omegaB; 
+        collision.tangent = cross(collision.normal, 1.0f);
 
-        glm::vec3 vRelative = vb - va;
-
-        f32 contactVelocityLen = glm::dot(vRelative, c.normal);
-
-        f32 j = (-contactVelocityLen + bias) /
-            (a.inverseMass + b.inverseMass +
-             pow(glm::dot(pap, c.normal), 2) * a.inverseInertia +
-             pow(glm::dot(pbp, c.normal), 2) * b.inverseInertia);
-
-        j = std::fmax(j, 0.0f);
-        j /= (f32) c.contactCount;
-
-        c.normalImpulseLen[i] = j;
+        contact.inverseTangentMass = 1.0f / (
+            a.inverseMass + b.inverseMass +
+            pow(glm::dot(pap, collision.tangent), 2) * a.inverseInertia +
+            pow(glm::dot(pbp, collision.tangent), 2) * b.inverseInertia
+        );
     }
+}
 
-    for (i32 i = 0; i < c.contactCount; i++) {
-        glm::vec3 pa = c.points[i] - a.position;
-        glm::vec3 pb = c.points[i] - b.position;
+void Physics::applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b) {
+    for (i32 i = 0; i < collision.contactCount; i++) {
+        Contact& contact = collision.contacts[i];
+        glm::vec3 pa = contact.point - a.position;
+        glm::vec3 pb = contact.point - b.position;
 
-        glm::vec3 impulse = c.normalImpulseLen[i] * c.normal;
+        glm::vec3 contactVelocity =
+            b.linearVelocity + cross(b.angularVelocity, pb) -
+            a.linearVelocity - cross(a.angularVelocity, pa);
+
+        f32 normalVelocityLen = glm::dot(contactVelocity, collision.normal);
+
+        contact.normalImpulseLen = (-normalVelocityLen + contact.positionCorrection) * contact.inverseNormalMass;
+        contact.normalImpulseLen = fmax(contact.normalImpulseLen, 0.0f);
+        glm::vec3 impulse = contact.normalImpulseLen * collision.normal; 
 
         a.linearVelocity -= impulse * a.inverseMass;
         a.angularVelocity -= cross(pa, impulse) * a.inverseInertia;
@@ -61,53 +72,24 @@ void Physics::applyNormalImpulse(Collision& c, RigidBody& a, RigidBody& b, f32 d
     }
 }
 
-void Physics::applyFrictionImpulse(Collision& c, RigidBody& a, RigidBody& b) {
-    glm::vec3 frictionImpulses[2]{};
-    f32 staticFriction = (a.staticFriction + b.staticFriction) * 0.5f;
-    f32 dynamicFriction = (a.dynamicFriction + b.dynamicFriction) * 0.5f;
+void Physics::applyFrictionImpulse(Collision& collision, RigidBody& a, RigidBody& b) {
+    for (i32 i = 0; i < collision.contactCount; i++) {
+        Contact& contact = collision.contacts[i];
+        glm::vec3 pa = contact.point - a.position;
+        glm::vec3 pb = contact.point - b.position;
 
-    for (i32 i = 0; i < c.contactCount; i++) {
-        glm::vec3 pa = c.points[i] - a.position;
-        glm::vec3 pb = c.points[i] - b.position;
+        glm::vec3 contactVelocity =
+            b.linearVelocity + cross(b.angularVelocity, pb) -
+            a.linearVelocity - cross(a.angularVelocity, pa);
 
-        glm::vec3 pap = glm::vec3(-pa.y, pa.x, 0.0f);
-        glm::vec3 pbp = glm::vec3(-pb.y, pb.x, 0.0f);
+        f32 jf = -glm::dot(contactVelocity, collision.tangent) * contact.inverseTangentMass;
+        float maxFriction = contact.friction * contact.normalImpulseLen;
+        jf = clamp(jf, -maxFriction, maxFriction);
+        glm::vec3 impulse = jf * collision.tangent;
 
-        glm::vec3 omegaA = a.angularVelocity * pap;
-        glm::vec3 omegaB = b.angularVelocity * pbp;
-
-        glm::vec3 va = a.linearVelocity + omegaA; 
-        glm::vec3 vb = b.linearVelocity + omegaB; 
-
-        glm::vec3 vRelative = vb - va;
-
-        glm::vec3 tangent = vRelative - glm::dot(vRelative, c.normal) * c.normal;
-
-        glm::vec3 zero = glm::vec3(0.0f, 0.0f, 0.0f);
-        if (closeTo(tangent, zero, DELTA_ERROR))
-            continue;
-        else
-            tangent = glm::normalize(tangent);
-
-        f32 jf = -glm::dot(vRelative, tangent) /
-            (a.inverseMass + b.inverseMass +
-             pow(glm::dot(pap, tangent), 2) * a.inverseInertia +
-             pow(glm::dot(pbp, tangent), 2) * b.inverseInertia);
-
-        jf /= (f32) c.contactCount;
-        if (fabs(jf) < c.normalImpulseLen[i] * staticFriction)
-            frictionImpulses[i] = jf * tangent;
-        else
-            frictionImpulses[i] = -c.normalImpulseLen[i] * tangent * dynamicFriction;
-    }
-
-    for (i32 i = 0; i < c.contactCount; i++) {
-        glm::vec3 pa = c.points[i] - a.position;
-        glm::vec3 pb = c.points[i] - b.position;
-
-        a.linearVelocity -= frictionImpulses[i] * a.inverseMass;
-        a.angularVelocity -= cross(pa, frictionImpulses[i]) * a.inverseInertia;
-        b.linearVelocity += frictionImpulses[i] * b.inverseMass;
-        b.angularVelocity += cross(pb, frictionImpulses[i]) * b.inverseInertia;
+        a.linearVelocity -= impulse * a.inverseMass;
+        a.angularVelocity -= cross(pa, impulse) * a.inverseInertia;
+        b.linearVelocity += impulse * b.inverseMass;
+        b.angularVelocity += cross(pb, impulse) * b.inverseInertia;
     }
 }

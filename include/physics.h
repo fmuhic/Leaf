@@ -12,8 +12,9 @@ struct Physics {
 
     private:
 
-    void applyNormalImpulse(Collision& c, RigidBody& a, RigidBody& b, f32 dtInv);
-    void applyFrictionImpulse(Collision& c, RigidBody& a, RigidBody& b);
+    void prepareContacts(Collision& collision, RigidBody& a, RigidBody& b, f32 dtInv);
+    void applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b);
+    void applyFrictionImpulse(Collision& collision, RigidBody& a, RigidBody& b);
 
     i32 correctionCount = 10;
     f32 positionCorrectionFactor = 0.2f;
