@@ -148,11 +148,15 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
 
     collision.contactCount = 0;
     if (dot(contact.points[0], referenceNormal) <= max) {
-        collision.contacts[collision.contactCount++].point = contact.points[0];
+        collision.contacts[collision.contactCount].point = contact.points[0];
+        collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[0], referenceEdge.first, referenceEdge.second);
+        collision.contactCount++;
     }
 
     if (dot(contact.points[1], referenceNormal) <= max) {
-        collision.contacts[collision.contactCount++].point = contact.points[1];
+        collision.contacts[collision.contactCount].point = contact.points[1];
+        collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[1], referenceEdge.first, referenceEdge.second);
+        collision.contactCount++;
     }
 }
 

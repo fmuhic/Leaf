@@ -1,4 +1,5 @@
 #include "leaf_math.h"
+#include <math.h>
 
 i32 modFloor(i32 num, i32 max) {
     return ((num % max) + max) % max;
@@ -39,24 +40,13 @@ f32 clamp(f32 val, f32 low, f32 high) {
 }
 
 
-PointLineResult findClosestPointToLine(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
-    glm::vec3 ab = b - a;
+f32 pointLineDistance(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
+    glm::vec3 ab = normalize(b - a);
     glm::vec3 ap = p - a;
-    f32 pr = glm::dot(ap, ab);
-    f32 abLengthSq = lengthSq(ab);
-    f32 abSegSq = pr / abLengthSq;
+    f32 pProjection = glm::dot(ap, ab);
+    f32 pLen = glm::length(ap);
 
-    PointLineResult r{};
-    if (abSegSq <= 0.0f)
-        r.cp = a;
-    else if (abSegSq >= 1.0f)
-        r.cp = b;
-    else
-        r.cp = a + ab * abSegSq;
-
-    r.distSq = distanceSq(p, r.cp);
-
-    return r;
+    return sqrtf(pLen * pLen - pProjection * pProjection);
 }
 
 

@@ -19,6 +19,6 @@ struct PointLineResult {
     glm::vec3 cp;
     f32 distSq;
 };
-PointLineResult findClosestPointToLine(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b); 
+f32 pointLineDistance(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b); 
 
 
