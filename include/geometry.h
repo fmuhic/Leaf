@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <vector>
+#include <map>
 
 #include "types.h"
 #include "const.h"
@@ -48,14 +49,16 @@ struct Edge {
     glm::vec3 second;
 };
 
+typedef std::pair<i32, i32> CollisionKey;
+typedef std::pair<CollisionKey, Collision> CollisionPair;
+
 struct Geometry {
     Geometry(i32 maxEntityCount);
 
     void broadPhase(std::vector<Entity>& entities);
     void narrowPhase(std::vector<Entity>& entities);
 
-    std::vector<Collision> collisions;
-    std::vector<Collision> clippingCollisions;
+    std::map<CollisionKey, Collision> collisions;
 
     private:
 

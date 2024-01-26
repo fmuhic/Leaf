@@ -8,7 +8,7 @@
 #include "geometry.h"
 
 struct Physics {
-    void resolveCollisions(std::vector<Collision>& collisions, std::vector<Entity>& entities, f32 dtInv);
+    void resolveCollisions(std::map<CollisionKey, Collision>& collisions, std::vector<Entity>& entities, f32 dtInv);
 
     private:
 

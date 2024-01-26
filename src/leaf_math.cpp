@@ -1,4 +1,7 @@
 #include "leaf_math.h"
+#include "helpers.h"
+#include <cfloat>
+#include <iostream>
 #include <math.h>
 
 i32 modFloor(i32 num, i32 max) {
@@ -45,8 +48,12 @@ f32 pointLineDistance(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
     glm::vec3 ap = p - a;
     f32 pProjection = glm::dot(ap, ab);
     f32 pLen = glm::length(ap);
+    f32 distSq = pLen * pLen - pProjection * pProjection;
 
-    return sqrtf(pLen * pLen - pProjection * pProjection);
+    if (distSq < FLT_MIN)
+        return 0.0f;
+
+    return sqrtf(distSq);
 }
 
 

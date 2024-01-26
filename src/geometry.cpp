@@ -1,6 +1,8 @@
 #include "geometry.h"
 #include "body.h"
+#include "helpers.h"
 #include "leaf_math.h"
+
 
 using std::pair;
 using std::vector;
@@ -9,7 +11,6 @@ using glm::vec3;
 
 Geometry::Geometry(i32 maxEntityCount) {
     candidates.reserve(maxEntityCount);
-    collisions.reserve(maxEntityCount);
 }
 
 void Geometry::broadPhase(vector<Entity>& entities) {
@@ -18,28 +19,24 @@ void Geometry::broadPhase(vector<Entity>& entities) {
     // Todo(Fudo): Switch to spatial partitioning
     for (ui32 i = 0; i < entities.size() - 1; ++i) {
         Entity &a = entities.at(i);
-        if (!a.isAlive)
-            continue;
 
         for (ui32 j = i + 1; j < entities.size(); ++j) {
             Entity &b = entities.at(j);
-            if (!b.isAlive)
-                continue;
 
             if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
                 continue;
 
-            if (!aabbIntersect(a.body.aabb, b.body.aabb))
+            if (!b.isAlive || !a.isAlive || !aabbIntersect(a.body.aabb, b.body.aabb)) {
+                collisions.erase(CollisionKey(i, j));
                 continue;
+            }
 
-            candidates.push_back(std::pair(i, j));
+            candidates.push_back(CollisionKey(i, j));
         }
     }
 }
 
 void Geometry::narrowPhase(std::vector<Entity>& entities) {
-    collisions.clear();
-
     for (auto &candidate: candidates) {
         Entity &a = entities.at(candidate.first);
         Entity &b = entities.at(candidate.second);
@@ -53,8 +50,14 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
         if (c.colided) { 
             findContactPoints(a.body, b.body, c);
             c.entities = candidate;
-            collisions.push_back(c);
+            auto iter = collisions.find(candidate);
+            if (iter == collisions.end())
+                collisions.insert(CollisionPair(candidate, c));
+            else
+                iter->second = c;
         }
+        else
+            collisions.erase(candidate);
     }
 }
 
@@ -112,9 +115,6 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
     }
 
     c.colided = true;
-    // Todo(Fudo): Properly implement depth
-    c.contacts[0].depth = minDepth;
-    c.contacts[1].depth = minDepth;
 
     glm::vec3 ab = b.position - a.position;
     if (glm::dot(ab, c.normal) < 0.0f)
@@ -128,7 +128,8 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -collision.normal);
 
     Edge referenceEdge, incidentEdge;
-    if (fabs(dot(aEdge.second - aEdge.first, collision.normal)) <= fabs(dot(bEdge.second - bEdge.first, collision.normal))) {
+    f32 delta = 0.005f;
+    if (fabs(dot(aEdge.second - aEdge.first, collision.normal)) - delta <= fabs(dot(bEdge.second - bEdge.first, collision.normal))) {
         referenceEdge = aEdge;
         incidentEdge = bEdge;
     } else {
@@ -146,16 +147,17 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     vec3 referenceNormal = -vec3(-referenceVector.y, referenceVector.x, 0.0f);
     f32 max = dot(referenceEdge.max, referenceNormal);
 
+    // Properly write this once we get stable contact points
     collision.contactCount = 0;
     if (dot(contact.points[0], referenceNormal) <= max) {
-        collision.contacts[collision.contactCount].point = contact.points[0];
         collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[0], referenceEdge.first, referenceEdge.second);
+        collision.contacts[collision.contactCount].point = contact.points[0] + referenceNormal * collision.contacts[collision.contactCount].depth;
         collision.contactCount++;
     }
 
     if (dot(contact.points[1], referenceNormal) <= max) {
-        collision.contacts[collision.contactCount].point = contact.points[1];
         collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[1], referenceEdge.first, referenceEdge.second);
+        collision.contacts[collision.contactCount].point = contact.points[1] + referenceNormal * collision.contacts[collision.contactCount].depth;
         collision.contactCount++;
     }
 }

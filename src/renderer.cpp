@@ -215,7 +215,7 @@ void Renderer::draw(Scene &scene, Game &game) {
 
     // For debugging
     glm::vec3 contactColor = glm::vec3(0.96f, 0.69f, 0.25f);
-    for (auto &c: game.geometry->collisions) {
+    for (auto& [_, c]: game.geometry->collisions) {
         for (i32 i = 0; i < c.contactCount; i++) {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, c.contacts[i].point);

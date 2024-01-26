@@ -6,8 +6,8 @@
 
 using std::vector;
 
-void Physics::resolveCollisions(vector<Collision>& collisions, vector<Entity>& entities, f32 dtInv) {
-    for (auto &c: collisions) {
+void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, vector<Entity>& entities, f32 dtInv) {
+    for (auto& [_, c]: collisions) {
         Entity &a = entities.at(c.entities.first);
         Entity &b = entities.at(c.entities.second);
 
