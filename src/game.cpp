@@ -55,12 +55,15 @@ void Game::processInput(MouseInput &mInput) {
 
 Entity* Game::findFreeEntity() {
     for (auto &e: entities) 
-        if (!e.isAlive)
+        if (!e.isAlive) {
+            e.body.reset();
             return &e;
+        }
     return nullptr;
 }
 
 void Game::createStackingScene() {
+    reset();
     Entity *e = findFreeEntity();
     if (e == nullptr)
         return;
@@ -77,4 +80,37 @@ void Game::createStackingScene() {
     );
     e->isAlive = true;
     e->color = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    i32 stackWidth = 15;
+    i32 stackHeight = 5;
+    glm::vec3 initPosition = glm::vec3(-7.0f, 0.0f, 0.0f);
+    f32 horizontalDistance = 0.0005f;
+    f32 verticalDistance = 0.5f;
+
+    for (i32 i = 0; i < stackWidth; i++) {
+        for (i32 j = 0 ; j < stackHeight; j++) {
+            if (i < j || j >= stackWidth - i)
+                continue;
+
+            Entity *e = findFreeEntity();
+            if (e == nullptr)
+                return;
+            e->body = RigidBody(
+                BodyType::RECTANGLE,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                initPosition + glm::vec3(i + i * horizontalDistance, j + j * verticalDistance, 0.0f),
+                false,
+                0.55,
+                0.35f,
+                0.5f
+            );
+            e->isAlive = true;
+        }
+    }
+
+}
+
+void Game::reset() {
+    for (auto &e: entities) 
+        e.isAlive = false;
 }

@@ -21,6 +21,7 @@ struct Game {
 
     private:
 
+    void reset();
     Entity* findFreeEntity();
     void processInput(MouseInput &mInput);
 
