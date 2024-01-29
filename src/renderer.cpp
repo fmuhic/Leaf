@@ -214,9 +214,9 @@ void Renderer::draw(Scene &scene, Game &game) {
     }
 
     // For debugging
-    glm::vec3 contactColor = glm::vec3(0.96f, 0.69f, 0.25f);
     for (auto& [_, c]: game.geometry->collisions) {
         for (i32 i = 0; i < c.contactCount; i++) {
+            glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, c.contacts[i].point);
             model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
@@ -241,4 +241,14 @@ void Renderer::draw(Scene &scene, Game &game) {
     //     if (e.isAlive && e.type == EntityType::RECTANGLE) 
     //         drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
     // }
+}
+
+glm::vec3 Renderer::pickContactColor(i32 contactLifeDuration) {
+    if (contactLifeDuration < 5)
+        return red;
+    else if (contactLifeDuration >= 5 && contactLifeDuration < 10)
+        return orange;
+    else if (contactLifeDuration >= 10 && contactLifeDuration < 50)
+        return yellow;
+    return green;
 }

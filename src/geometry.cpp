@@ -54,7 +54,7 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
             if (iter == collisions.end())
                 collisions.insert(CollisionPair(candidate, c));
             else
-                iter->second = c;
+                iter->second.update(c);
         }
         else
             collisions.erase(candidate);
@@ -67,8 +67,9 @@ bool Geometry::aabbIntersect(AABB& a, AABB& b) {
         a.bottomLeft.x > b.topRight.x ||
         a.topRight.y < b.bottomLeft.y ||
         a.bottomLeft.y > b.topRight.y
-    )
+    ) {
         return false;
+    }
 
     return true;
 }
@@ -127,12 +128,15 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     Edge aEdge = findContactEdge(a.vertices, a.vertexCount, collision.normal);
     Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -collision.normal);
 
+    f32 edgePreferenceDelta = 0.005f;
     Edge referenceEdge, incidentEdge;
-    f32 delta = 0.005f;
-    if (fabs(dot(aEdge.second - aEdge.first, collision.normal)) - delta <= fabs(dot(bEdge.second - bEdge.first, collision.normal))) {
+    ContactId id;
+    if (fabs(dot(aEdge.second - aEdge.first, collision.normal)) - edgePreferenceDelta <= fabs(dot(bEdge.second - bEdge.first, collision.normal))) {
+        id.first = 0;
         referenceEdge = aEdge;
         incidentEdge = bEdge;
     } else {
+        id.first = 1;
         referenceEdge = bEdge;
         incidentEdge = aEdge;
     }
@@ -150,12 +154,18 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     // Properly write this once we get stable contact points
     collision.contactCount = 0;
     if (dot(contact.points[0], referenceNormal) <= max) {
+        ContactId firstId = id;
+        firstId.second = incidentEdge.id.first;
+        collision.contacts[collision.contactCount].id = firstId;
         collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[0], referenceEdge.first, referenceEdge.second);
         collision.contacts[collision.contactCount].point = contact.points[0] + referenceNormal * collision.contacts[collision.contactCount].depth;
         collision.contactCount++;
     }
 
     if (dot(contact.points[1], referenceNormal) <= max) {
+        ContactId secondId = id;
+        secondId.second = incidentEdge.id.second;
+        collision.contacts[collision.contactCount].id = secondId;
         collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[1], referenceEdge.first, referenceEdge.second);
         collision.contacts[collision.contactCount].point = contact.points[1] + referenceNormal * collision.contacts[collision.contactCount].depth;
         collision.contactCount++;
@@ -199,15 +209,35 @@ Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal)
         }
     }
 
+    i32 v0Index = modFloor(index - 1, count);
+    i32 v1Index = modFloor(index + 1, count);
     vec3 v = vertices[index];
-    vec3 v0 = vertices[modFloor(index - 1, count)];
-    vec3 v1 = vertices[modFloor(index + 1, count)];
+    vec3 v0 = vertices[v0Index];
+    vec3 v1 = vertices[v1Index];
 
     glm::vec3 leftEdge = normalize(v - v1);
     glm::vec3 rightEdge = normalize(v - v0);
 
     if (dot(rightEdge, normal) <= dot(leftEdge, normal))
-        return Edge { v, v0, v };
+        return Edge { EdgeId(v0Index, index), v, v0, v };
     else
-        return Edge { v, v, v1 };
+        return Edge { EdgeId(index, v1Index), v, v, v1 };
+}
+
+void Collision::update(Collision& c) {
+    normal = c.normal;
+    for (i32 i = 0; i < c.contactCount; i++) {
+        Contact &cOld = contacts[i];
+        Contact &cNew = c.contacts[i];
+        if (cOld.id == cNew.id) {
+            cNew.accNormalImpulse = cOld.accNormalImpulse;
+            cNew.accFrictionImpulse = cOld.accFrictionImpulse;
+            cNew.lifeDuration = ++cOld.lifeDuration;
+            cOld = cNew;
+        }
+        else {
+            contacts[i] = c.contacts[i];
+        }
+    }
+    contactCount = c.contactCount;
 }

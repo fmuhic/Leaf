@@ -13,17 +13,25 @@
 #define MAX_CONTACT_POINTS 2
 #define COLLISION_COUNT ENTITY_COUNT * 4
 
+typedef std::pair<i32, i32> EdgeId;
+typedef std::pair<i32, i32> ContactId;
+
 struct EdgePoints {
     i32 count = 0;
     glm::vec3 points[2];
 };
 
 struct Contact {
+    ContactId id;
+    i32 lifeDuration = 0;
     glm::vec3 point;
     f32 depth;
 
     glm::vec3 aToContact;
     glm::vec3 bToContact;
+
+    f32 accNormalImpulse = 0.0f;
+    f32 accFrictionImpulse = 0.0f;
 
     f32 inverseNormalMass;
     f32 inverseTangentMass;
@@ -41,9 +49,12 @@ struct Collision {
     glm::vec3 tangent;
     i32 contactCount = 0;
     Contact contacts[MAX_CONTACT_POINTS];
+
+    void update(Collision& c);
 };
 
 struct Edge {
+    EdgeId id;
     glm::vec3 max;
     glm::vec3 first;
     glm::vec3 second;

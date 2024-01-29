@@ -46,6 +46,12 @@ void Physics::prepareContacts(Collision& collision, RigidBody& a, RigidBody& b, 
             pow(glm::dot(pap, collision.tangent), 2) * a.inverseInertia +
             pow(glm::dot(pbp, collision.tangent), 2) * b.inverseInertia
         );
+
+        glm::vec3 P = contact.accNormalImpulse * collision.normal + contact.accFrictionImpulse * collision.tangent;
+        a.linearVelocity -= P * a.inverseMass;
+        a.angularVelocity -= cross(contact.aToContact, P) * a.inverseInertia;
+        b.linearVelocity += P * b.inverseMass;
+        b.angularVelocity += cross(contact.bToContact, P) * b.inverseInertia;
     }
 }
 
@@ -59,7 +65,9 @@ void Physics::applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& 
         f32 normalVelocityLen = glm::dot(contactVelocity, collision.normal);
 
         contact.normalImpulseLen = (-normalVelocityLen + contact.positionCorrection) * contact.inverseNormalMass;
-        contact.normalImpulseLen = fmax(contact.normalImpulseLen, 0.0f);
+        f32 oldAccumulatedImpulse = contact.accNormalImpulse;
+        contact.accNormalImpulse = fmax(contact.normalImpulseLen + oldAccumulatedImpulse, 0.0f);
+        contact.normalImpulseLen = contact.accNormalImpulse - oldAccumulatedImpulse;
     }
 
     for (i32 i = 0; i < collision.contactCount; i++) {
@@ -83,8 +91,10 @@ void Physics::applyFrictionImpulse(Collision& collision, RigidBody& a, RigidBody
 
         contact.frictionImpulseLen = -glm::dot(contactVelocity, collision.tangent) * contact.inverseTangentMass;
 
-        float maxFriction = contact.friction * contact.normalImpulseLen;
-        contact.frictionImpulseLen = clamp(contact.frictionImpulseLen, -maxFriction, maxFriction);
+        f32 maxFriction = contact.friction * contact.accNormalImpulse;
+        f32 oldFrictionImpulse = contact.accFrictionImpulse; 
+        contact.accFrictionImpulse = clamp(oldFrictionImpulse + contact.frictionImpulseLen, -maxFriction, maxFriction);
+        contact.frictionImpulseLen = contact.accFrictionImpulse - oldFrictionImpulse;
     }
 
     for (i32 i = 0; i < collision.contactCount; i++) {
