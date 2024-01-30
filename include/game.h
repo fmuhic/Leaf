@@ -14,6 +14,7 @@ struct Game {
 
     void update(f32 dt, MouseInput &mInput);
     void render();
+    void createImmovableGround();
     void createStackingScene();
 
     std::vector<Entity> entities;

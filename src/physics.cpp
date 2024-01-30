@@ -15,7 +15,7 @@ void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, v
 
         for (i32 i = 0; i < correctionCount; i++) {
             applyNormalImpulse(c, a.body, b.body);
-            // applyFrictionImpulse(c, a.body, b.body);
+            applyFrictionImpulse(c, a.body, b.body);
         }
     }
 }

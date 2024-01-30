@@ -62,13 +62,11 @@ Entity* Game::findFreeEntity() {
     return nullptr;
 }
 
-void Game::createStackingScene() {
-    reset();
+void Game::createImmovableGround() {
     Entity *e = findFreeEntity();
     if (e == nullptr)
         return;
 
-    // Immovable ground
     e->body = RigidBody(
         BodyType::RECTANGLE,
         glm::vec3(25.0f, 1.0f, 1.0f),
@@ -80,6 +78,11 @@ void Game::createStackingScene() {
     );
     e->isAlive = true;
     e->color = glm::vec3(1.0f, 1.0f, 1.0f);
+}
+
+void Game::createStackingScene() {
+    reset();
+    createImmovableGround();
 
     i32 stackWidth = 15;
     i32 stackHeight = 10;

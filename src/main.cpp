@@ -67,7 +67,7 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->createStackingScene();
+    game->createImmovableGround();
 
     MouseInput mInput;
 
@@ -101,7 +101,7 @@ void processKeyboardInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        game->createStackingScene();
+        game->createImmovableGround();
 }
 
 void processMouseInput(GLFWwindow *window, MouseInput &input) {
