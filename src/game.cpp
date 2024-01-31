@@ -63,6 +63,7 @@ Entity* Game::findFreeEntity() {
 }
 
 void Game::createImmovableGround() {
+    reset();
     Entity *e = findFreeEntity();
     if (e == nullptr)
         return;
@@ -81,12 +82,11 @@ void Game::createImmovableGround() {
 }
 
 void Game::createStackingScene() {
-    reset();
     createImmovableGround();
 
     i32 stackWidth = 15;
     i32 stackHeight = 10;
-    glm::vec3 initPosition = glm::vec3(-10.5f, 0.0f, 0.0f);
+    glm::vec3 initPosition = glm::vec3(-10.5f, -6.0f, 0.0f);
     f32 horizontalDistance = 0.5f;
     f32 verticalDistance = 0.5f;
 
