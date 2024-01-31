@@ -216,6 +216,9 @@ void Renderer::draw(Scene &scene, Game &game) {
     // For debugging
     for (auto& [_, c]: game.geometry->collisions) {
         for (i32 i = 0; i < c.contactCount; i++) {
+            if(c.contacts[i].lifeDuration > 150)
+                continue;
+
             glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, c.contacts[i].point);
@@ -250,5 +253,6 @@ glm::vec3 Renderer::pickContactColor(i32 contactLifeDuration) {
         return orange;
     else if (contactLifeDuration >= 10 && contactLifeDuration < 50)
         return yellow;
-    return green;
+    else
+        return green;
 }
