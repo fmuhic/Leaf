@@ -38,8 +38,16 @@ bool closeTo(glm::vec3 &a, glm::vec3 &b, f32 delta) {
     return closeTo(a.x, b.x, delta) && closeTo(a.y, b.y, delta);
 }
 
+f32 min(f32 a, f32 b) {
+    return a < b ? a : b;
+}
+
+f32 max(f32 a, f32 b) {
+    return a > b ? a : b;
+}
+
 f32 clamp(f32 val, f32 low, f32 high) {
-	return fmax(low, fmin(val, high));
+	return max(low, min(val, high));
 }
 
 
@@ -47,13 +55,10 @@ f32 pointLineDistance(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
     glm::vec3 ab = normalize(b - a);
     glm::vec3 ap = p - a;
     f32 pProjection = glm::dot(ap, ab);
-    f32 pLen = glm::length(ap);
-    f32 distSq = pLen * pLen - pProjection * pProjection;
 
-    if (distSq < FLT_MIN)
-        return 0.0f;
-
-    return sqrtf(distSq);
+    glm::vec3 ppp = a + ab * pProjection;
+    glm::vec3 res = p - ppp;
+    return glm::length(res);
 }
 
 

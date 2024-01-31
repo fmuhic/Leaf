@@ -7,7 +7,7 @@ RigidBody::RigidBody(): RigidBody(
     glm::vec3(0.0f, 0.0f, 0.0f),
     false,
     0.55,
-    0.35f,
+    0.2f,
     0.5f
 ) {}
 
@@ -68,14 +68,17 @@ void RigidBody::step(f32 dt) {
 
     glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
     linearVelocity += (acceleration + gravity) * dt;
-
-    transformToWorld();
-    updateAABB();
 }
 
 void RigidBody::updatePosition(f32 dt) {
+    if (inverseMass == 0.0f)
+        return;
+
     position += linearVelocity * dt;
     orientation += angularVelocity * dt;
+
+    transformToWorld();
+    updateAABB();
 }
 
 void RigidBody::transformToWorld() {

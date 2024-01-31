@@ -73,7 +73,7 @@ void Game::createImmovableGround() {
         glm::vec3(0.0f, -8.0f, 0.0f),
         true,
         0.55,
-        0.35f,
+        0.2f,
         0.5f
     );
     e->isAlive = true;
@@ -104,7 +104,7 @@ void Game::createStackingScene() {
                 initPosition + glm::vec3(i + i * horizontalDistance, j + j * verticalDistance, 0.0f),
                 false,
                 0.55,
-                0.35f,
+                0.2f,
                 0.5f
             );
             e->isAlive = true;

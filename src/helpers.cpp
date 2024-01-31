@@ -33,9 +33,3 @@ f32 min(f32 *xs, i32 count) {
     }
     return min;
 }
-f32 min(f32 a, f32 b) {
-    if (a < b)
-        return a;
-    return b;
-}
-

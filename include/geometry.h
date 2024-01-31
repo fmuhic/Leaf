@@ -27,15 +27,12 @@ struct Contact {
     glm::vec3 point;
     f32 depth;
 
-    glm::vec3 aToContact;
-    glm::vec3 bToContact;
-
     f32 accNormalImpulse = 0.0f;
     f32 accFrictionImpulse = 0.0f;
 
     f32 inverseNormalMass;
     f32 inverseTangentMass;
-    f32 positionCorrection;
+    f32 positionCorrection = 0.0f;
 
     f32 normalImpulseLen;
     f32 frictionImpulseLen;

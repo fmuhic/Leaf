@@ -233,7 +233,7 @@ void Collision::update(Collision& c) {
             cNew.accNormalImpulse = cOld.accNormalImpulse;
             cNew.accFrictionImpulse = cOld.accFrictionImpulse;
             cNew.lifeDuration = ++cOld.lifeDuration;
-            cOld = cNew;
+            contacts[i] = cNew;
         }
         else {
             contacts[i] = c.contacts[i];
