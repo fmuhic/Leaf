@@ -19,6 +19,7 @@ Game::~Game() {
 
 void Game::update(f32 dt, MouseInput &mInput) {
     processInput(mInput);
+
     for (auto &e: entities) {
         if (!e.isAlive)
             continue;
@@ -27,10 +28,11 @@ void Game::update(f32 dt, MouseInput &mInput) {
         e.despawnIfOutOfBounds();
     }
 
-    f32 dtInv = dt > 0.0f ? 1.0f / dt : 0.0f;
-
     geometry->broadPhase(entities);
     geometry->narrowPhase(entities);
+
+    f32 dtInv = dt > 0.0f ? 1.0f / dt : 0.0f;
+
     physics->resolveCollisions(geometry->collisions, entities, dtInv);
 
     for (auto &e: entities) {
@@ -74,7 +76,7 @@ void Game::createImmovableGround() {
         glm::vec3(0.0f, -8.0f, 0.0f),
         true,
         0.55,
-        0.7f,
+        0.2f,
         0.5f
     );
     e->isAlive = true;
@@ -104,7 +106,7 @@ void Game::createStackingScene() {
                 initPosition + glm::vec3(i + i * horizontalDistance, j + j * verticalDistance, 0.0f),
                 false,
                 0.55,
-                0.7f,
+                0.2f,
                 0.5f
             );
             e->isAlive = true;

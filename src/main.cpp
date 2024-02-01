@@ -21,7 +21,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define GAME_UPDATE_INTERVAL_SEC 0.005f
+#define GAME_UPDATE_INTERVAL_SEC 1.0f / 60.0f
 #define ENTITY_COUNT 100
 
 using std::cout;
@@ -67,24 +67,25 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->createStackingScene();
+    game->createImmovableGround();
 
     MouseInput mInput;
 
     f64 previous = glfwGetTime();
     f64 lag = 0.0;
+    std::cout << lag;
     while (!glfwWindowShouldClose(window)) {
         f64 current = glfwGetTime();
         f64 elapsed = current - previous;
         lag += elapsed;
         previous = current;
 
-        while (lag > GAME_UPDATE_INTERVAL_SEC) {
+        // while (lag > GAME_UPDATE_INTERVAL_SEC) {
             processKeyboardInput(window);
             processMouseInput(window, mInput);
-            game->update(GAME_UPDATE_INTERVAL_SEC, mInput);
+            game->update(elapsed, mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
-        }
+        /* } */
 
         renderer->draw(*scene, *game);
 
@@ -101,6 +102,9 @@ void processKeyboardInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
+        game->createImmovableGround();
+
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         game->createStackingScene();
 }
 

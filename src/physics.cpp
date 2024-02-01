@@ -14,11 +14,10 @@ void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, v
         prepareContacts(c, a.body, b.body, dtInv);
     }
 
-    for (auto& [_, c]: collisions) {
-        Entity &a = entities.at(c.entities.first);
-        Entity &b = entities.at(c.entities.second);
-
-        for (i32 i = 0; i < correctionCount; i++) {
+    for (i32 i = 0; i < correctionCount; i++) {
+        for (auto& [_, c]: collisions) {
+            Entity &a = entities.at(c.entities.first);
+            Entity &b = entities.at(c.entities.second);
             applyImpulses(c, a.body, b.body);
         }
     }

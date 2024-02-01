@@ -158,7 +158,8 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
         firstId.second = incidentEdge.id.first;
         collision.contacts[collision.contactCount].id = firstId;
         collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[0], referenceEdge.first, referenceEdge.second);
-        collision.contacts[collision.contactCount].point = contact.points[0] + referenceNormal * collision.contacts[collision.contactCount].depth;
+        // collision.contacts[collision.contactCount].point = contact.points[0] + referenceNormal * collision.contacts[collision.contactCount].depth;
+        collision.contacts[collision.contactCount].point = contact.points[0];
         collision.contactCount++;
     }
 
@@ -167,7 +168,8 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
         secondId.second = incidentEdge.id.second;
         collision.contacts[collision.contactCount].id = secondId;
         collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[1], referenceEdge.first, referenceEdge.second);
-        collision.contacts[collision.contactCount].point = contact.points[1] + referenceNormal * collision.contacts[collision.contactCount].depth;
+        // collision.contacts[collision.contactCount].point = contact.points[1] + referenceNormal * collision.contacts[collision.contactCount].depth;
+        collision.contacts[collision.contactCount].point = contact.points[1];
         collision.contactCount++;
     }
 }
