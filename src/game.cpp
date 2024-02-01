@@ -74,7 +74,7 @@ void Game::createImmovableGround() {
         glm::vec3(0.0f, -8.0f, 0.0f),
         true,
         0.55,
-        0.2f,
+        0.7f,
         0.5f
     );
     e->isAlive = true;
@@ -88,7 +88,7 @@ void Game::createStackingScene() {
     i32 stackHeight = 10;
     glm::vec3 initPosition = glm::vec3(-10.5f, -6.0f, 0.0f);
     f32 horizontalDistance = 0.5f;
-    f32 verticalDistance = 0.5f;
+    f32 verticalDistance = 0.7f;
 
     for (i32 i = 0; i < stackWidth; i++) {
         for (i32 j = 0 ; j < stackHeight; j++) {
@@ -104,7 +104,7 @@ void Game::createStackingScene() {
                 initPosition + glm::vec3(i + i * horizontalDistance, j + j * verticalDistance, 0.0f),
                 false,
                 0.55,
-                0.2f,
+                0.7f,
                 0.5f
             );
             e->isAlive = true;

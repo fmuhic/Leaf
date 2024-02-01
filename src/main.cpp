@@ -21,7 +21,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define GAME_UPDATE_INTERVAL_SEC 1.0f / 60.0f
+#define GAME_UPDATE_INTERVAL_SEC 0.005f
 #define ENTITY_COUNT 100
 
 using std::cout;
@@ -67,7 +67,7 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->createImmovableGround();
+    game->createStackingScene();
 
     MouseInput mInput;
 
@@ -101,7 +101,7 @@ void processKeyboardInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        game->createImmovableGround();
+        game->createStackingScene();
 }
 
 void processMouseInput(GLFWwindow *window, MouseInput &input) {
