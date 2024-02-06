@@ -1,6 +1,7 @@
 #include "game.h"
 #include "body.h"
 #include "geometry.h"
+#include "helpers.h"
 #include "physics.h"
 
 Game::Game(i32 maxEntityCount) {
@@ -15,6 +16,11 @@ Game::Game(i32 maxEntityCount) {
 Game::~Game() {
     delete geometry;
     delete physics;
+}
+
+void Game::reset() {
+    for (auto &e: entities) 
+        e.destroy();
 }
 
 void Game::update(f32 dt, MouseInput &mInput) {
@@ -121,7 +127,38 @@ void Game::createStackingScene() {
     }
 }
 
-void Game::reset() {
-    for (auto &e: entities) 
-        e.destroy();
+void Game::createStackingPilars() {
+    reset();
+    createImmovableGround();
+
+    i32 pilarCount = 5;
+    i32 height = 15;
+    glm::vec3 initPosition = glm::vec3(-8.0f, -6.8f, 0.0f);
+    for (i32 i = 0; i < pilarCount; i++)
+        createPilar(initPosition + glm::vec3(i * 4.0f, 0.0f, 0.0f), height);
+}
+
+void Game::createPilar(glm::vec3 position, i32 height) {
+    f32 verticalDistance = 0.05f;
+    f32 xDeltaOffset = 0.008f;
+    for (i32 i = 0; i < height; i++) {
+            Entity *e = findFreeEntity();
+            if (e == nullptr)
+                return;
+
+            e->body = RigidBody(
+                BodyType::RECTANGLE,
+                glm::vec3(1.0f, 1.0f, 1.0f),
+                position + glm::vec3(
+                    pickRand(0, 5) * xDeltaOffset,
+                    i + i * verticalDistance,
+                    0.0f
+                ),
+                false,
+                0.55,
+                0.2f,
+                0.5f
+            );
+            e->isAlive = true;
+    }
 }

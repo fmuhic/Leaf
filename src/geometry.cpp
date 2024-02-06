@@ -160,19 +160,23 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     vec3 referenceNormal = -vec3(-referenceVector.y, referenceVector.x, 0.0f);
     f32 max = dot(referenceEdge.max, referenceNormal);
 
-    if (dot(edge.points[0], referenceNormal) <= max)
+    if (dot(edge.points[0], referenceNormal) <= max) {
+        f32 depth = pointLineDistance(edge.points[0], referenceEdge.first, referenceEdge.second);
         collision.addContactPoint(Contact(
             ContactId(bodyId, incidentEdge.id.first),
-            edge.points[0],
-            pointLineDistance(edge.points[0], referenceEdge.first, referenceEdge.second)
+            edge.points[0] + referenceNormal * depth,
+            depth
         ));
+    }
 
-    if (dot(edge.points[1], referenceNormal) <= max)
+    if (dot(edge.points[1], referenceNormal) <= max) {
+        f32 depth = pointLineDistance(edge.points[1], referenceEdge.first, referenceEdge.second);
         collision.addContactPoint(Contact(
             ContactId(bodyId, incidentEdge.id.second),
-            edge.points[1],
-            pointLineDistance(edge.points[1], referenceEdge.first, referenceEdge.second)
+            edge.points[1] + referenceNormal * depth,
+            depth
         ));
+    }
 }
 
 EdgePoints Geometry::clipEdge(

@@ -63,7 +63,7 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->createDefaultScene();
+    game->createStackingPilars();
 
     MouseInput mInput;
 
@@ -97,10 +97,10 @@ void processKeyboardInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        game->createDefaultScene();
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+        game->createStackingPilars();
 
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
         game->createStackingScene();
 }
 

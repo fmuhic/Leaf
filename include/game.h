@@ -13,6 +13,7 @@ struct Game {
 
     void update(f32 dt, MouseInput &mInput);
     void render();
+    void createStackingPilars();
     void createStackingScene();
     void createDefaultScene();
 
@@ -26,6 +27,7 @@ struct Game {
     void processInput(MouseInput &mInput);
 
     void createImmovableGround();
+    void createPilar(glm::vec3 position, i32 height);
 
     Physics* physics;
 };

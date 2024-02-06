@@ -13,9 +13,10 @@ struct Physics {
     private:
 
     void prepareContacts(Collision& collision, RigidBody& a, RigidBody& b, f32 dtInv);
-    void applyImpulses(Collision& collision, RigidBody& a, RigidBody& b);
+    void applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b);
+    void applyTangentImpulse(Collision& collision, RigidBody& a, RigidBody& b);
 
-    i32 correctionCount = 20;
+    i32 correctionCount = 15;
     f32 positionCorrectionFactor = 0.2f;
     f32 allowedPenetration = 0.01f;
 };
