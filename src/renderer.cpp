@@ -213,10 +213,9 @@ void Renderer::draw(Scene &scene, Game &game) {
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
     }
 
-    // For debugging
     for (auto& [_, c]: game.geometry->collisions) {
         for (i32 i = 0; i < c.contactCount; i++) {
-            if(c.contacts[i].lifeDuration > 150)
+            if(c.contacts[i].isStable())
                 continue;
 
             glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
@@ -227,6 +226,7 @@ void Renderer::draw(Scene &scene, Game &game) {
         }
     }
 
+    // // Render Circle Entities
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);
     // glBindVertexArray(r->circle.vao);
     // for (auto e: game->entities) {

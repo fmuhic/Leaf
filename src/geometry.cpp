@@ -3,6 +3,8 @@
 #include "helpers.h"
 #include "leaf_math.h"
 
+#define BODY_A_ID 0
+#define BODY_B_ID 1
 
 using std::pair;
 using std::vector;
@@ -50,16 +52,17 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
         if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
             c = checkPlygonPolygon(a.body, b.body);
         else
-            assert(false && "Invalid object type");
+            assert(false && "Circles not implemented for now");
 
         if (c.colided) { 
-            findContactPoints(a.body, b.body, c);
             c.entities = candidate;
+            findContactPoints(a.body, b.body, c);
+
             auto iter = collisions.find(candidate);
             if (iter == collisions.end())
                 collisions.insert(CollisionPair(candidate, c));
             else
-                iter->second.update(c);
+                iter->second.mergeContacts(c);
         }
         else
             collisions.erase(candidate);
@@ -122,6 +125,7 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
 
     c.colided = true;
 
+    // Make sure normal always points A -> B
     glm::vec3 ab = b.position - a.position;
     if (glm::dot(ab, c.normal) < 0.0f)
         c.normal = -c.normal;
@@ -133,50 +137,42 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     Edge aEdge = findContactEdge(a.vertices, a.vertexCount, collision.normal);
     Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -collision.normal);
 
-    f32 edgePreferenceDelta = 0.005f;
     Edge referenceEdge, incidentEdge;
-    ContactId id;
+    i32 bodyId;
     if (fabs(dot(aEdge.second - aEdge.first, collision.normal)) - edgePreferenceDelta <= fabs(dot(bEdge.second - bEdge.first, collision.normal))) {
-        id.first = 0;
+        bodyId = BODY_A_ID;
         referenceEdge = aEdge;
         incidentEdge = bEdge;
-    } else {
-        id.first = 1;
+    }
+    else {
+        bodyId = BODY_B_ID;
         referenceEdge = bEdge;
         incidentEdge = aEdge;
     }
 
     vec3 referenceVector = normalize(referenceEdge.first - referenceEdge.second);
     f32 offset = dot(referenceEdge.second, referenceVector); 
-    EdgePoints contact = clipEdge(incidentEdge.first, incidentEdge.second, referenceVector, offset);
+    EdgePoints edge = clipEdge(incidentEdge.first, incidentEdge.second, referenceVector, offset);
 
     offset = dot(referenceEdge.first, referenceVector); 
-    contact = clipEdge(contact.points[0], contact.points[1], -referenceVector, -offset);
+    edge = clipEdge(edge.points[0], edge.points[1], -referenceVector, -offset);
 
     vec3 referenceNormal = -vec3(-referenceVector.y, referenceVector.x, 0.0f);
     f32 max = dot(referenceEdge.max, referenceNormal);
 
-    // Properly write this once we get stable contact points
-    collision.contactCount = 0;
-    if (dot(contact.points[0], referenceNormal) <= max) {
-        ContactId firstId = id;
-        firstId.second = incidentEdge.id.first;
-        collision.contacts[collision.contactCount].id = firstId;
-        collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[0], referenceEdge.first, referenceEdge.second);
-        // collision.contacts[collision.contactCount].point = contact.points[0] + referenceNormal * collision.contacts[collision.contactCount].depth;
-        collision.contacts[collision.contactCount].point = contact.points[0];
-        collision.contactCount++;
-    }
+    if (dot(edge.points[0], referenceNormal) <= max)
+        collision.addContactPoint(Contact(
+            ContactId(bodyId, incidentEdge.id.first),
+            edge.points[0],
+            pointLineDistance(edge.points[0], referenceEdge.first, referenceEdge.second)
+        ));
 
-    if (dot(contact.points[1], referenceNormal) <= max) {
-        ContactId secondId = id;
-        secondId.second = incidentEdge.id.second;
-        collision.contacts[collision.contactCount].id = secondId;
-        collision.contacts[collision.contactCount].depth = pointLineDistance(contact.points[1], referenceEdge.first, referenceEdge.second);
-        // collision.contacts[collision.contactCount].point = contact.points[1] + referenceNormal * collision.contacts[collision.contactCount].depth;
-        collision.contacts[collision.contactCount].point = contact.points[1];
-        collision.contactCount++;
-    }
+    if (dot(edge.points[1], referenceNormal) <= max)
+        collision.addContactPoint(Contact(
+            ContactId(bodyId, incidentEdge.id.second),
+            edge.points[1],
+            pointLineDistance(edge.points[1], referenceEdge.first, referenceEdge.second)
+        ));
 }
 
 EdgePoints Geometry::clipEdge(
@@ -184,24 +180,25 @@ EdgePoints Geometry::clipEdge(
     glm::vec3& p2,
     glm::vec3 referenceEdge,
     f32 referenceOffset
-){
-    EdgePoints c{};
+) {
+    EdgePoints ep{};
     f32 d1 = dot(p1, referenceEdge) - referenceOffset;
     f32 d2 = dot(p2, referenceEdge) - referenceOffset;
 
     if (d1 >= 0.0f)
-        c.points[c.count++] = p1;
+        ep.points[ep.count++] = p1;
 
     if (d2 >= 0.0f)
-        c.points[c.count++] = p2;
+        ep.points[ep.count++] = p2;
 
     if (d1 * d2 < 0.0f) {
         vec3 midPoint = ((p2 - p1) * d1 / (d1 - d2)) + p1;
-        c.points[c.count++] = midPoint;
+        ep.points[ep.count++] = midPoint;
     }
-    assert(c.count == 2 && "We always need to end up with 2 contact points");
 
-    return c;
+    assert(ep.count == 2 && "We always need to end up with 2 contact points");
+
+    return ep;
 }
 
 Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal) {
@@ -231,20 +228,32 @@ Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal)
         return Edge { EdgeId(index, v1Index), v, v, v1 };
 }
 
-void Collision::update(Collision& c) {
+void Collision::mergeContacts(Collision& c) {
     normal = c.normal;
     for (i32 i = 0; i < c.contactCount; i++) {
-        Contact &cOld = contacts[i];
-        Contact &cNew = c.contacts[i];
-        if (cOld.id == cNew.id) {
-            cNew.accNormalImpulse = cOld.accNormalImpulse;
-            cNew.accFrictionImpulse = cOld.accFrictionImpulse;
-            cNew.lifeDuration = ++cOld.lifeDuration;
-            contacts[i] = cNew;
-        }
-        else {
-            contacts[i] = c.contacts[i];
+        Contact &newContact = c.contacts[i];
+
+        for (i32 j = 0; j < contactCount; j++) {
+        Contact &oldContact = contacts[j];
+            if (newContact.id == oldContact.id) {
+                newContact.accNormalImpulse = oldContact.accNormalImpulse;
+                newContact.accTangentImpulse = oldContact.accTangentImpulse;
+                newContact.lifeDuration = ++oldContact.lifeDuration;
+                break;
+            }
         }
     }
+
     contactCount = c.contactCount;
+    for (i32 i = 0; i < contactCount; i++)
+        contacts[i] = c.contacts[i];
+}
+
+void Collision::addContactPoint(Contact c) {
+    contacts[contactCount] = c;
+    contactCount++;
+};
+
+bool Contact::isStable() {
+    return lifeDuration > STABLE_CONTACT_MIN_FRAMES;
 }

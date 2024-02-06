@@ -1,6 +1,5 @@
 #pragma once
 
-#include <utility>
 #include <vector>
 #include <map>
 
@@ -10,6 +9,7 @@
 #include "body.h"
 #include "leaf_math.h"
 
+#define STABLE_CONTACT_MIN_FRAMES 150
 #define MAX_CONTACT_POINTS 2
 #define COLLISION_COUNT ENTITY_COUNT * 4
 
@@ -22,21 +22,25 @@ struct EdgePoints {
 };
 
 struct Contact {
+    Contact() {}
+    Contact(ContactId id, glm::vec3 point, f32 depth):
+        id(id), point(point), depth(depth) {} 
+
+    bool isStable();
+
     ContactId id;
     i32 lifeDuration = 0;
     glm::vec3 point;
     f32 depth;
 
     f32 accNormalImpulse = 0.0f;
-    f32 accFrictionImpulse = 0.0f;
+    f32 accTangentImpulse = 0.0f;
 
-    f32 inverseNormalMass;
-    f32 inverseTangentMass;
+    f32 inverseNormalMass = 0.0f;
+    f32 inverseTangentMass = 0.0f;
     f32 positionCorrection = 0.0f;
 
-    f32 normalImpulseLen;
-    f32 frictionImpulseLen;
-    f32 friction;
+    f32 friction = 0.0f;
 };
 
 struct Collision {
@@ -47,7 +51,8 @@ struct Collision {
     i32 contactCount = 0;
     Contact contacts[MAX_CONTACT_POINTS];
 
-    void update(Collision& c);
+    void mergeContacts(Collision& c);
+    void addContactPoint(Contact c);
 };
 
 struct Edge {
@@ -79,4 +84,6 @@ struct Geometry {
     EdgePoints clipEdge(glm::vec3& first, glm::vec3& second, glm::vec3 referenceEdge, f32 referenceOffset);
 
     std::vector<std::pair<i32, i32>> candidates; 
+
+    f32 edgePreferenceDelta = 0.005f;
 };
