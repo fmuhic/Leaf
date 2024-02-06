@@ -8,7 +8,16 @@
 struct Entity {
     void despawnIfOutOfBounds() {
         if (body.position.x < -50.0f || body.position.y < -50.0f)
-            isAlive = false;
+            destroy();
+    }
+
+    void destroy() {
+        isAlive = false;
+    }
+
+    void activate(glm::vec3 position) {
+        isAlive = true;
+        body.reset(position);
     }
 
     bool isAlive = false;

@@ -49,23 +49,24 @@ void Game::processInput(MouseInput &mInput) {
         if (e == nullptr)
             return;
 
-        e->body.reset();
-        e->isAlive = true;
-        e->body.position = glm::vec3(mInput.position.x, mInput.position.y, 0.0f);
+        e->activate(glm::vec3(mInput.position.x, mInput.position.y, 0.0f));
     }
 }
 
 Entity* Game::findFreeEntity() {
-    for (auto &e: entities) 
-        if (!e.isAlive) {
-            e.body.reset();
+    for (auto &e: entities) {
+        if (!e.isAlive)
             return &e;
-        }
+    }
     return nullptr;
 }
 
-void Game::createImmovableGround() {
+void Game::createDefaultScene() {
     reset();
+    createImmovableGround();
+}
+
+void Game::createImmovableGround() {
     Entity *e = findFreeEntity();
     if (e == nullptr)
         return;
@@ -84,6 +85,7 @@ void Game::createImmovableGround() {
 }
 
 void Game::createStackingScene() {
+    reset();
     createImmovableGround();
 
     i32 stackWidth = 15;
@@ -100,10 +102,15 @@ void Game::createStackingScene() {
             Entity *e = findFreeEntity();
             if (e == nullptr)
                 return;
+
             e->body = RigidBody(
                 BodyType::RECTANGLE,
                 glm::vec3(1.0f, 1.0f, 1.0f),
-                initPosition + glm::vec3(i + i * horizontalDistance, j + j * verticalDistance, 0.0f),
+                initPosition + glm::vec3(
+                    i + i * horizontalDistance,
+                    j + j * verticalDistance,
+                    0.0f
+                ),
                 false,
                 0.55,
                 0.2f,
@@ -116,5 +123,5 @@ void Game::createStackingScene() {
 
 void Game::reset() {
     for (auto &e: entities) 
-        e.isAlive = false;
+        e.destroy();
 }

@@ -65,6 +65,7 @@ struct Geometry {
 
     void broadPhase(std::vector<Entity>& entities);
     void narrowPhase(std::vector<Entity>& entities);
+    void reset();
 
     std::map<CollisionKey, Collision> collisions;
 

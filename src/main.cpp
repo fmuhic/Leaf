@@ -67,7 +67,7 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->createImmovableGround();
+    game->createDefaultScene();
 
     MouseInput mInput;
 
@@ -80,12 +80,12 @@ int main() {
         lag += elapsed;
         previous = current;
 
-        // while (lag > GAME_UPDATE_INTERVAL_SEC) {
+        while (lag > GAME_UPDATE_INTERVAL_SEC) {
             processKeyboardInput(window);
             processMouseInput(window, mInput);
             game->update(elapsed, mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
-        /* } */
+        }
 
         renderer->draw(*scene, *game);
 
@@ -102,7 +102,7 @@ void processKeyboardInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS)
-        game->createImmovableGround();
+        game->createDefaultScene();
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
         game->createStackingScene();

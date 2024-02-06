@@ -28,7 +28,7 @@ struct RigidBody {
         f32 restitution
     );
 
-    void reset();
+    void reset(glm::vec3 newPosition);
     void step(f32 dt);
     void updatePosition(f32 dt);
 

@@ -14,8 +14,8 @@ struct Game {
 
     void update(f32 dt, MouseInput &mInput);
     void render();
-    void createImmovableGround();
     void createStackingScene();
+    void createDefaultScene();
 
     std::vector<Entity> entities;
     Geometry* geometry;
@@ -25,6 +25,8 @@ struct Game {
     void reset();
     Entity* findFreeEntity();
     void processInput(MouseInput &mInput);
+
+    void createImmovableGround();
 
     Physics* physics;
 };

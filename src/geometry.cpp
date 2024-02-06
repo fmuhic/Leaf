@@ -13,6 +13,11 @@ Geometry::Geometry(i32 maxEntityCount) {
     candidates.reserve(maxEntityCount);
 }
 
+void Geometry::reset() {
+    candidates.clear();
+    collisions.clear();
+}
+
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
 

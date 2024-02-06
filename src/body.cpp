@@ -54,12 +54,14 @@ RigidBody::RigidBody(
     updateAABB();
 }
 
-void RigidBody::reset() {
+void RigidBody::reset(glm::vec3 newPosition) {
     acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
     linearVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
-    position = glm::vec3(0.0f, 0.0f, 0.0f);
+    position = newPosition;
     angularVelocity = 0.0f;
     orientation = 0.0f;
+    updateAABB();
+    transformToWorld();
 }
 
 void RigidBody::step(f32 dt) {
