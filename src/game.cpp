@@ -21,6 +21,7 @@ Game::~Game() {
 }
 
 void Game::reset() {
+    geometry->reset();
     for (auto &e: entities) 
         e.destroy();
 }

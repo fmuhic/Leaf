@@ -29,7 +29,7 @@ add_executable(leaf
 )
 
 if(MSVC)
-  target_compile_options(leaf PRIVATE /W4 /WX)
+  target_compile_options(leaf PRIVATE /W3 /WX)
 else()
   target_compile_options(leaf PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
