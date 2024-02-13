@@ -13,7 +13,6 @@ struct Game {
     ~Game();
 
     void update(f32 dt, f32 elapsed, MouseInput &mInput);
-    void render();
     void changeScene(Example *example);
 
     std::vector<Entity> entities;
@@ -26,6 +25,6 @@ struct Game {
     Entity* findFreeEntity();
     void processInput(MouseInput &mInput);
 
-    Physics* physics;
-    Example *example;
+    Physics* physics = nullptr;
+    Example* example = nullptr;
 };

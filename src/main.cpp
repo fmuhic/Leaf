@@ -65,7 +65,7 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->changeScene(new Thumbler());
+    game->changeScene(new StackingExample());
 
     MouseInput mInput;
 
@@ -80,7 +80,7 @@ int main() {
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
             processKeyboardInput(window);
             processMouseInput(window, mInput);
-            game->update(GAME_UPDATE_INTERVAL_SEC,glfwGetTime(), mInput);
+            game->update(GAME_UPDATE_INTERVAL_SEC, glfwGetTime(), mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
