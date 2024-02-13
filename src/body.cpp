@@ -4,8 +4,9 @@
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,
     glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::vec3(0.0f, 0.0f, 0.0f),
     false,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    0.0f,
     0.55,
     0.2f,
     0.5f
@@ -14,8 +15,9 @@ RigidBody::RigidBody(): RigidBody(
 RigidBody::RigidBody(
     BodyType type,
     glm::vec3 scale,
-    glm::vec3 initPosition,
     bool immovable,
+    glm::vec3 initPosition,
+    f32 initOrientation,
     f32 staticFriction,
     f32 dynamicFriction,
     f32 restitution
@@ -23,6 +25,7 @@ RigidBody::RigidBody(
     type(type),
     scale(scale),
     position(initPosition),
+    orientation(initOrientation),
     staticFriction(staticFriction),
     dynamicFriction(dynamicFriction),
     restitution(restitution)
@@ -64,7 +67,7 @@ void RigidBody::reset(glm::vec3 newPosition) {
     transformToWorld();
 }
 
-void RigidBody::step(f32 dt) {
+void RigidBody::updateVelocity(f32 dt) {
     if (inverseMass == 0.0f)
         return;
 
@@ -73,8 +76,10 @@ void RigidBody::step(f32 dt) {
 }
 
 void RigidBody::updatePosition(f32 dt) {
-    if (inverseMass == 0.0f)
+    if (inverseMass == 0.0f) {
+        updateAABB();
         return;
+    }
 
     position += linearVelocity * dt;
     orientation += angularVelocity * dt;

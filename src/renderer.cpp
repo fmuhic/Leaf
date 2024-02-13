@@ -209,22 +209,23 @@ void Renderer::draw(Scene &scene, Game &game) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
     glBindVertexArray(quad.vao);
     for (auto &e: game.entities) {
-        if (e.isAlive && e.body.type == BodyType::RECTANGLE) 
+        if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
-    }
-
-    for (auto& [_, c]: game.geometry->collisions) {
-        for (i32 i = 0; i < c.contactCount; i++) {
-            if(c.contacts[i].isStable())
-                continue;
-
-            glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, c.contacts[i].point);
-            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
-            drawEntity(shaderProgram, quad, scene, model, contactColor);
         }
     }
+
+    // for (auto& [_, c]: game.geometry->collisions) {
+    //     for (i32 i = 0; i < c.contactCount; i++) {
+    //         if(c.contacts[i].isStable())
+    //             continue;
+    //
+    //         glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
+    //         glm::mat4 model = glm::mat4(1.0f);
+    //         model = glm::translate(model, c.contacts[i].point);
+    //         model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
+    //         drawEntity(shaderProgram, quad, scene, model, contactColor);
+    //     }
+    // }
 
     // // Render Circle Entities
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);

@@ -21,15 +21,16 @@ struct RigidBody {
     RigidBody(
         BodyType type,
         glm::vec3 scale,
-        glm::vec3 initPosition,
         bool immovable,
+        glm::vec3 initPosition,
+        f32 orientation,
         f32 staticFriction,
         f32 dynamicFriction,
         f32 restitution
     );
 
     void reset(glm::vec3 newPosition);
-    void step(f32 dt);
+    void updateVelocity(f32 dt);
     void updatePosition(f32 dt);
 
     BodyType type ;

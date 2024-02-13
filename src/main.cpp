@@ -9,6 +9,8 @@
 #include "renderer.h"
 #include "input.h"
 #include "game.h"
+#include "examples/thumbler.h"
+#include "examples/stacking.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
 void processKeyboardInput(GLFWwindow *window);
@@ -63,13 +65,12 @@ int main() {
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     game = new Game(ENTITY_COUNT);
-    game->createStackingPilars();
+    game->changeScene(new Thumbler());
 
     MouseInput mInput;
 
     f64 previous = glfwGetTime();
     f64 lag = 0.0;
-    std::cout << lag;
     while (!glfwWindowShouldClose(window)) {
         f64 current = glfwGetTime();
         f64 elapsed = current - previous;
@@ -79,7 +80,7 @@ int main() {
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
             processKeyboardInput(window);
             processMouseInput(window, mInput);
-            game->update(GAME_UPDATE_INTERVAL_SEC, mInput);
+            game->update(GAME_UPDATE_INTERVAL_SEC,glfwGetTime(), mInput);
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
@@ -98,10 +99,10 @@ void processKeyboardInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        game->createStackingPilars();
+        game->changeScene(new Thumbler());
 
     if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        game->createStackingScene();
+        game->changeScene(new StackingExample());
 }
 
 void processMouseInput(GLFWwindow *window, MouseInput &input) {

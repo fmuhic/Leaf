@@ -23,6 +23,9 @@ add_executable(leaf
     src/physics.cpp
     src/game.cpp
     src/helpers.cpp
+    src/examples/example.cpp
+    src/examples/thumbler.cpp
+    src/examples/stacking.cpp
 )
 
 if(MSVC)

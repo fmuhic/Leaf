@@ -3,6 +3,7 @@
 #include "geometry.h"
 #include "helpers.h"
 #include "physics.h"
+#include "types.h"
 
 Game::Game(i32 maxEntityCount) {
     geometry = new Geometry(maxEntityCount);
@@ -16,6 +17,7 @@ Game::Game(i32 maxEntityCount) {
 Game::~Game() {
     delete geometry;
     delete physics;
+    delete example;
 }
 
 void Game::reset() {
@@ -23,14 +25,22 @@ void Game::reset() {
         e.destroy();
 }
 
-void Game::update(f32 dt, MouseInput &mInput) {
+void Game::changeScene(Example *newExample) {
+    reset();
+    delete example;
+    example = newExample;
+    example->setup(entities);
+}
+
+void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
     processInput(mInput);
+    updateLogic(elapsed);
 
     for (auto &e: entities) {
         if (!e.isAlive)
             continue;
 
-        e.body.step(dt);
+        e.body.updateVelocity(dt);
         e.despawnIfOutOfBounds();
     }
 
@@ -49,6 +59,10 @@ void Game::update(f32 dt, MouseInput &mInput) {
     }
 }
 
+void Game::updateLogic(f32 elapsed) {
+    example->update(entities, elapsed);
+}
+
 void Game::processInput(MouseInput &mInput) {
     if (mInput.clicked(MouseButton::LEFT)) {
         Entity* e = findFreeEntity();
@@ -65,100 +79,4 @@ Entity* Game::findFreeEntity() {
             return &e;
     }
     return nullptr;
-}
-
-void Game::createDefaultScene() {
-    reset();
-    createImmovableGround();
-}
-
-void Game::createImmovableGround() {
-    Entity *e = findFreeEntity();
-    if (e == nullptr)
-        return;
-
-    e->body = RigidBody(
-        BodyType::RECTANGLE,
-        glm::vec3(25.0f, 1.0f, 1.0f),
-        glm::vec3(0.0f, -8.0f, 0.0f),
-        true,
-        0.55,
-        0.2f,
-        0.5f
-    );
-    e->isAlive = true;
-    e->color = glm::vec3(1.0f, 1.0f, 1.0f);
-}
-
-void Game::createStackingScene() {
-    reset();
-    createImmovableGround();
-
-    i32 stackWidth = 15;
-    i32 stackHeight = 10;
-    glm::vec3 initPosition = glm::vec3(-10.5f, -6.0f, 0.0f);
-    f32 horizontalDistance = 0.5f;
-    f32 verticalDistance = 0.7f;
-
-    for (i32 i = 0; i < stackWidth; i++) {
-        for (i32 j = 0 ; j < stackHeight; j++) {
-            if (i < j || j >= stackWidth - i)
-                continue;
-
-            Entity *e = findFreeEntity();
-            if (e == nullptr)
-                return;
-
-            e->body = RigidBody(
-                BodyType::RECTANGLE,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                initPosition + glm::vec3(
-                    i + i * horizontalDistance,
-                    j + j * verticalDistance,
-                    0.0f
-                ),
-                false,
-                0.55,
-                0.2f,
-                0.5f
-            );
-            e->isAlive = true;
-        }
-    }
-}
-
-void Game::createStackingPilars() {
-    reset();
-    createImmovableGround();
-
-    i32 pilarCount = 5;
-    i32 height = 15;
-    glm::vec3 initPosition = glm::vec3(-8.0f, -6.8f, 0.0f);
-    for (i32 i = 0; i < pilarCount; i++)
-        createPilar(initPosition + glm::vec3(i * 4.0f, 0.0f, 0.0f), height);
-}
-
-void Game::createPilar(glm::vec3 position, i32 height) {
-    f32 verticalDistance = 0.05f;
-    f32 xDeltaOffset = 0.008f;
-    for (i32 i = 0; i < height; i++) {
-            Entity *e = findFreeEntity();
-            if (e == nullptr)
-                return;
-
-            e->body = RigidBody(
-                BodyType::RECTANGLE,
-                glm::vec3(1.0f, 1.0f, 1.0f),
-                position + glm::vec3(
-                    pickRand(0, 5) * xDeltaOffset,
-                    i + i * verticalDistance,
-                    0.0f
-                ),
-                false,
-                0.55,
-                0.2f,
-                0.5f
-            );
-            e->isAlive = true;
-    }
 }
