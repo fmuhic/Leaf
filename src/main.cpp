@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "examples/slider.h"
 #include "geometry.h"
 #include "helpers.h"
 #include "renderer.h"
@@ -19,7 +20,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define GAME_UPDATE_INTERVAL_SEC 1.0f / 60.0f
+#define GAME_UPDATE_INTERVAL_SEC 0.005f
 #define ENTITY_COUNT 100
 
 using std::cout;
@@ -99,10 +100,13 @@ void processKeyboardInput(GLFWwindow *window) {
         glfwSetWindowShouldClose(window, true);
 
     if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        game->changeScene(new Thumbler());
+        game->changeScene(new StackingExample());
 
     if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        game->changeScene(new StackingExample());
+        game->changeScene(new Thumbler());
+
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+        game->changeScene(new SliderExample());
 }
 
 void processMouseInput(GLFWwindow *window, MouseInput &input) {

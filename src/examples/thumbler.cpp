@@ -1,4 +1,5 @@
 #include "examples/thumbler.h"
+#include "body.h"
 
 void Thumbler::setup(std::vector<Entity>& entities) {
     Entity& e0 = entities[0];
@@ -84,63 +85,26 @@ void Thumbler::setup(std::vector<Entity>& entities) {
             e->isAlive = true;
         }
     }
-
 }
+
 void Thumbler::update(std::vector<Entity>& entities, f32 elapsed) {
-    // Refactor this
-    Entity& e0 = entities[0];
-    glm::mat4& model = e0.body.model;
+    updateCageSide(glm::vec3(0.0f, -6.0f, 0.0f), entities[0].body, elapsed);
+    updateCageSide(glm::vec3(0.0f, 6.0f, 0.0f), entities[1].body, elapsed);
+    updateCageSide(glm::vec3(6.5f, 0.0f, 0.0f), entities[2].body, elapsed);
+    updateCageSide(glm::vec3(-6.5f, 0.0f, 0.0f), entities[3].body, elapsed);
+}
+
+void Thumbler::updateCageSide(glm::vec3 p, RigidBody& body, f32 elapsed) {
+    glm::mat4& model = body.model;
     model = glm::mat4(1.0f);
-    model = glm::rotate(model, elapsed * 0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
-    model = glm::translate(model, glm::vec3(0.0f, -6.0f, 0.0f));
-    model = glm::scale(model, glm::vec3(e0.body.scale.x, e0.body.scale.y, e0.body.scale.z));
+    model = glm::rotate(model, elapsed * 0.3f, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::translate(model, p);
+    model = glm::scale(model, glm::vec3(body.scale.x, body.scale.y, body.scale.z));
 
-    e0.body.vertices[0] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-    e0.body.vertices[1] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-    e0.body.vertices[2] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-    e0.body.vertices[3] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-    e0.body.position = model * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    e0.body.model = model;
-
-    Entity& e1 = entities[1];
-    glm::mat4 model1 = e1.body.model;
-    model1 = glm::mat4(1.0f);
-    model1 = glm::rotate(model1, elapsed * 0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
-    model1 = glm::translate(model1, glm::vec3(0.0f, 6.0f, 0.0f));
-    model1 = glm::scale(model1, glm::vec3(e1.body.scale.x, e1.body.scale.y, e1.body.scale.z));
-
-    e1.body.vertices[0] = model1 * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-    e1.body.vertices[1] = model1 * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-    e1.body.vertices[2] = model1 * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-    e1.body.vertices[3] = model1 * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-    e1.body.position = model1 * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    e1.body.model = model1;
-
-    Entity& e2 = entities[2];
-    glm::mat4 model2 = e1.body.model;
-    model2 = glm::mat4(1.0f);
-    model2 = glm::rotate(model2, elapsed * 0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
-    model2 = glm::translate(model2, glm::vec3(6.5f, 0.0f, 0.0f));
-    model2 = glm::scale(model2, glm::vec3(e2.body.scale.x, e2.body.scale.y, e2.body.scale.z));
-
-    e2.body.vertices[0] = model2 * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-    e2.body.vertices[1] = model2 * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-    e2.body.vertices[2] = model2 * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-    e2.body.vertices[3] = model2 * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-    e2.body.position = model2 * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    e2.body.model = model2;
-
-    Entity& e3 = entities[3];
-    glm::mat4 model3 = e1.body.model;
-    model3 = glm::mat4(1.0f);
-    model3 = glm::rotate(model3, elapsed * 0.2f, glm::vec3(0.0f, 0.0f, 1.0f));
-    model3 = glm::translate(model3, glm::vec3(-6.5f, 0.0f, 0.0f));
-    model3 = glm::scale(model3, glm::vec3(e2.body.scale.x, e2.body.scale.y, e2.body.scale.z));
-
-    e3.body.vertices[0] = model3 * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
-    e3.body.vertices[1] = model3 * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
-    e3.body.vertices[2] = model3 * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
-    e3.body.vertices[3] = model3 * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
-    e3.body.position = model3 * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-    e3.body.model = model3;
+    body.vertices[0] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
+    body.vertices[1] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
+    body.vertices[2] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
+    body.vertices[3] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
+    body.position = model * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    body.model = model;
 }

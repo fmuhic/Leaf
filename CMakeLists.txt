@@ -26,6 +26,7 @@ add_executable(leaf
     src/examples/example.cpp
     src/examples/thumbler.cpp
     src/examples/stacking.cpp
+    src/examples/slider.cpp
 )
 
 if(MSVC)

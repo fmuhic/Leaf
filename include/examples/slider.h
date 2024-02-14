@@ -1,9 +1,11 @@
+#pragma once
+
 #include "examples/example.h"
 
-struct Thumbler: public Example {
+struct SliderExample: public Example {
     void setup(std::vector<Entity>& entities);
     void update(std::vector<Entity>& entities, f32 elapsed);
-    
+
     private:
-    void updateCageSide(glm::vec3 p, RigidBody& body, f32 elapsed);
+    f32 lastBlockSpawn = 0.0f;
 };
