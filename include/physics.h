@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "types.h"
-#include "const.h"
+#include "leaf_math.h"
 #include "body.h"
 #include "geometry.h"
 
@@ -16,7 +16,7 @@ struct Physics {
     void applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b);
     void applyTangentImpulse(Collision& collision, RigidBody& a, RigidBody& b);
 
-    i32 correctionCount = 5;
+    i32 correctionCount = 10;
     f32 positionCorrectionFactor = 0.2f;
     f32 allowedPenetration = 0.01f;
 };

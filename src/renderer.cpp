@@ -8,7 +8,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "body.h"
-#include "helpers.h"
 #include "renderer.h"
 #include "loader.h"
 
@@ -208,11 +207,35 @@ void Renderer::draw(Scene &scene, Game &game) {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
     glBindVertexArray(quad.vao);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for (auto &e: game.entities) {
         if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
         }
     }
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    for (auto &e: game.entities) {
+        if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, e.body.position);
+            model = glm::scale(
+                model,
+                glm::vec3(
+                    e.body.aabb.topRight.x - e.body.aabb.bottomLeft.x,
+                    e.body.aabb.topRight.y - e.body.aabb.bottomLeft.y,
+                    1.0f
+                )
+            );
+            drawEntity(shaderProgram, quad, scene, model, e.color);
+        }
+    }
+
+    // for (auto &e: game.entities) {
+    //     if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
+    //         drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
+    //     }
+    // }
 
     // for (auto& [_, c]: game.geometry->collisions) {
     //     for (i32 i = 0; i < c.contactCount; i++) {
@@ -237,14 +260,6 @@ void Renderer::draw(Scene &scene, Game &game) {
     // glBindVertexArray(0);
     // glBindBuffer(GL_ARRAY_BUFFER, 0); 
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    //
-    //
-    // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->quad.ebo);
-    // glBindVertexArray(r->quad.vao);
-    // for (auto e: game->entities) {
-    //     if (e.isAlive && e.type == EntityType::RECTANGLE) 
-    //         drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
-    // }
 }
 
 glm::vec3 Renderer::pickContactColor(i32 contactLifeDuration) {

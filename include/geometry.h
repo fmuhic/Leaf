@@ -4,10 +4,8 @@
 #include <map>
 
 #include "types.h"
-#include "const.h"
 #include "entity.h"
 #include "body.h"
-#include "leaf_math.h"
 
 #define STABLE_CONTACT_MIN_FRAMES 150
 #define MAX_CONTACT_POINTS 2

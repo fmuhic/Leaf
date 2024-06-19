@@ -1,6 +1,5 @@
 #include "geometry.h"
 #include "body.h"
-#include "helpers.h"
 #include "leaf_math.h"
 
 #define BODY_A_ID 0
@@ -23,7 +22,6 @@ void Geometry::reset() {
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
 
-    // Todo(Fudo): Switch to spatial partitioning
     for (ui32 i = 0; i < entities.size() - 1; ++i) {
         Entity &a = entities.at(i);
 

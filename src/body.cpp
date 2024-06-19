@@ -1,5 +1,4 @@
 #include "body.h"
-#include "helpers.h"
 
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,

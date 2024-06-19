@@ -5,8 +5,6 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "examples/slider.h"
-#include "geometry.h"
-#include "helpers.h"
 #include "renderer.h"
 #include "input.h"
 #include "game.h"
@@ -20,7 +18,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-#define GAME_UPDATE_INTERVAL_SEC 0.005f
+#define GAME_UPDATE_INTERVAL_SEC 1.0f / 60.0f
 #define ENTITY_COUNT 100
 
 using std::cout;
@@ -71,19 +69,14 @@ int main() {
     MouseInput mInput;
 
     f64 previous = glfwGetTime();
-    f64 lag = 0.0;
     while (!glfwWindowShouldClose(window)) {
         f64 current = glfwGetTime();
         f64 elapsed = current - previous;
-        lag += elapsed;
         previous = current;
 
-        while (lag > GAME_UPDATE_INTERVAL_SEC) {
-            processKeyboardInput(window);
-            processMouseInput(window, mInput);
-            game->update(GAME_UPDATE_INTERVAL_SEC, glfwGetTime(), mInput);
-            lag -= GAME_UPDATE_INTERVAL_SEC;
-        }
+        processKeyboardInput(window);
+        processMouseInput(window, mInput);
+        game->update(elapsed, glfwGetTime(), mInput);
 
         renderer->draw(*scene, *game);
 
