@@ -1,5 +1,26 @@
 #include "body.h"
 
+AABB AABB::fatten(const f32 amount) const {
+    glm::vec3 d = glm::vec3(amount, amount, 0.0f);
+    return AABB(
+        bottomLeft - amount,
+        topRight + amount
+    );
+}
+
+AABB AABB::merge(const AABB &other) const {
+    return AABB (
+        min(this->bottomLeft, other.bottomLeft),
+        min(this->topRight, other.topRight)
+    );
+}
+
+f32 AABB::perimiter() const {
+    f32 p = 2.0f * (topRight.x - bottomLeft.x) + 2.0f * (topRight.y - bottomLeft.y);
+    assert(p >= 0.0f);
+    return p;
+}
+
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,
     glm::vec3(1.0f, 1.0f, 1.0f),

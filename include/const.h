@@ -7,4 +7,5 @@
 
 extern f32 PI;
 extern f32 DELTA_ERROR;
+extern f32 UNITS_PER_METER;
 extern std::vector<glm::vec3> COLORS;

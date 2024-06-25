@@ -1,7 +1,5 @@
 #include "leaf_math.h"
-#include "helpers.h"
 #include <cfloat>
-#include <iostream>
 #include <math.h>
 
 i32 modFloor(i32 num, i32 max) {
@@ -42,8 +40,16 @@ f32 min(f32 a, f32 b) {
     return a < b ? a : b;
 }
 
+glm::vec3 min(glm::vec3 a, glm::vec3 b) {
+    return glm::vec3(min(a.x, b.x), min(a.y, b.y), 0.0f);
+}
+
 f32 max(f32 a, f32 b) {
     return a > b ? a : b;
+}
+
+glm::vec3 max(glm::vec3 a, glm::vec3 b) {
+    return glm::vec3(max(a.x, b.x), max(a.y, b.y), 0.0f);
 }
 
 f32 clamp(f32 val, f32 low, f32 high) {

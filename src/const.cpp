@@ -2,6 +2,7 @@
 
 f32 PI = 3.141592f;
 f32 DELTA_ERROR = 0.0005f;
+f32 UNITS_PER_METER = 1.0f;
 
 std::vector<glm::vec3> COLORS {
     glm::vec3(0.80f, 0.38f, 0.33f),
