@@ -43,29 +43,27 @@ void DynamicTree::insertLeaf(i32 leafId) {
         AABB combinedBox = leafBox.merge(nodes[index].box);
         f32 combinedPerimiter = combinedBox.perimiter();
 
-        // Cost of placing leaf as child of current parent
+        // Cost of attaching parent at this index
         f32 cost = 2.0f * combinedPerimiter;
         // Cost of going deeper into the tree
         f32 inheritedCost = 2.0f * (combinedPerimiter - perimiter);
 
         f32 leftCost;
-        AABB leftCombinedBox = leafBox.merge(nodes[leftChild].box);
+        f32 leftCombinedCost = leafBox.merge(nodes[leftChild].box).perimiter();
         if (nodes[leftChild].isLeaf()) {
-            leftCost = leftCombinedBox.perimiter() + inheritedCost;
+            leftCost = leftCombinedCost + inheritedCost;
         } else {
             f32 oldCost = nodes[leftChild].box.perimiter();
-            f32 newCost = leftCombinedBox.perimiter();
-            leftCost = (newCost - oldCost) + inheritedCost;
+            leftCost = (leftCombinedCost - oldCost) + inheritedCost;
         }
 
         f32 rightCost;
-        AABB rightCombinedBox = leafBox.merge(nodes[rightChild].box);
+        f32 rightCombinedCost = leafBox.merge(nodes[rightChild].box).perimiter();
         if (nodes[rightChild].isLeaf()) {
-            rightCost = rightCombinedBox.perimiter() + inheritedCost;
+            rightCost = rightCombinedCost + inheritedCost;
         } else {
             f32 oldCost = nodes[rightChild].box.perimiter();
-            f32 newCost = rightCombinedBox.perimiter();
-            rightCost = (newCost - oldCost) + inheritedCost;
+            rightCost = (rightCombinedCost - oldCost) + inheritedCost;
         }
 
 		if (cost < leftCost && cost < rightCost) {
@@ -108,6 +106,7 @@ void DynamicTree::insertLeaf(i32 leafId) {
         i32 rightChild = nodes[index].rightChild;
 
         nodes[index].box = nodes[leftChild].box.merge(nodes[rightChild].box);
+        index = nodes[index].parent;
     }
 }
 
