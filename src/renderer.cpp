@@ -9,6 +9,7 @@
 
 #include "body.h"
 #include "renderer.h"
+#include "const.h"
 #include "loader.h"
 
 using std::string;
@@ -215,20 +216,21 @@ void Renderer::draw(Scene &scene, Game &game) {
     }
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    for (auto &e: game.entities) {
-        if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, e.body.position);
-            model = glm::scale(
-                model,
-                glm::vec3(
-                    e.body.aabb.topRight.x - e.body.aabb.bottomLeft.x,
-                    e.body.aabb.topRight.y - e.body.aabb.bottomLeft.y,
-                    1.0f
-                )
-            );
-            drawEntity(shaderProgram, quad, scene, model, e.color);
-        }
+    std::vector<AABB> boxes;
+    game.geometry->dynamicTree->getAll(boxes);
+    for (auto &box: boxes) {
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec3 p = box.bottomLeft + (box.topRight - box.bottomLeft) * 0.5f;
+        model = glm::translate(model, p);
+        model = glm::scale(
+            model,
+            glm::vec3(
+                box.topRight.x - box.bottomLeft.x,
+                box.topRight.y - box.bottomLeft.y,
+                1.0f
+            )
+        );
+        drawEntity(shaderProgram, quad, scene, model, COLORS[7]);
     }
 
     // for (auto &e: game.entities) {

@@ -21,6 +21,14 @@ f32 AABB::perimiter() const {
     return p;
 }
 
+bool AABB::contains(AABB& other) const {
+    return
+        bottomLeft.x <= other.bottomLeft.x &&
+        bottomLeft.y <= other.bottomLeft.y &&
+        topRight.x >= other.topRight.x &&
+        topRight.y >= other.topRight.y;
+}
+
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,
     glm::vec3(1.0f, 1.0f, 1.0f),

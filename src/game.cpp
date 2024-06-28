@@ -5,12 +5,12 @@
 #include "types.h"
 
 Game::Game(i32 maxEntityCount) {
-    geometry = new Geometry(maxEntityCount);
-    physics = new Physics();
-
     entities.reserve(maxEntityCount);
     for (i32 i = 0; i < maxEntityCount; ++i)
         entities.push_back(Entity{});
+
+    geometry = new Geometry(entities, maxEntityCount);
+    physics = new Physics();
 }
 
 Game::~Game() {

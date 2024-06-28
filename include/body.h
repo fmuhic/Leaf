@@ -12,6 +12,7 @@ struct AABB {
 
     AABB fatten(const f32 amount) const;
     AABB merge(const AABB &other) const;
+    bool contains(AABB& other) const;
     f32 perimiter() const;
 
     glm::vec3 bottomLeft;

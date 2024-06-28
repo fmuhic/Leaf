@@ -10,8 +10,12 @@ using std::vector;
 using std::fabs;
 using glm::vec3;
 
-Geometry::Geometry(i32 maxEntityCount) {
+Geometry::Geometry(std::vector<Entity>& entities, i32 maxEntityCount) {
     candidates.reserve(maxEntityCount);
+    dynamicTree = new DynamicTree();
+    for (auto e: entities) {
+        dynamicTree->createBox(e.body.aabb);
+    }
 }
 
 void Geometry::reset() {
