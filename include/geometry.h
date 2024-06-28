@@ -65,7 +65,7 @@ typedef std::pair<i32, i32> CollisionKey;
 typedef std::pair<CollisionKey, Collision> CollisionPair;
 
 struct Geometry {
-    Geometry(std::vector<Entity>& entities, i32 maxEntityCount);
+    Geometry(i32 maxEntityCount);
 
     void broadPhase(std::vector<Entity>& entities);
     void narrowPhase(std::vector<Entity>& entities);

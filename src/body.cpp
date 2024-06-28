@@ -11,7 +11,7 @@ AABB AABB::fatten(const f32 amount) const {
 AABB AABB::merge(const AABB &other) const {
     return AABB (
         min(this->bottomLeft, other.bottomLeft),
-        min(this->topRight, other.topRight)
+        max(this->topRight, other.topRight)
     );
 }
 
@@ -53,6 +53,7 @@ RigidBody::RigidBody(
     type(type),
     scale(scale),
     position(initPosition),
+    prevPosition(initPosition),
     orientation(initOrientation),
     staticFriction(staticFriction),
     dynamicFriction(dynamicFriction),
@@ -89,6 +90,7 @@ void RigidBody::reset(glm::vec3 newPosition) {
     acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
     linearVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
     position = newPosition;
+    prevPosition = newPosition;
     angularVelocity = 0.0f;
     orientation = 0.0f;
     updateAABB();
@@ -109,6 +111,7 @@ void RigidBody::updatePosition(f32 dt) {
         return;
     }
 
+    prevPosition = position;
     position += linearVelocity * dt;
     orientation += angularVelocity * dt;
 

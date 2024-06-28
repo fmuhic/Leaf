@@ -9,7 +9,7 @@ Game::Game(i32 maxEntityCount) {
     for (i32 i = 0; i < maxEntityCount; ++i)
         entities.push_back(Entity{});
 
-    geometry = new Geometry(entities, maxEntityCount);
+    geometry = new Geometry(maxEntityCount);
     physics = new Physics();
 }
 
@@ -30,6 +30,10 @@ void Game::changeScene(Example *newExample) {
     delete example;
     example = newExample;
     example->setup(entities);
+    for (auto& e: entities) {
+        i32 treeId = geometry->dynamicTree->createBox(e.body.aabb);
+        e.treeId = treeId;
+    }
 }
 
 void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
@@ -41,7 +45,9 @@ void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
             continue;
 
         e.body.updateVelocity(dt);
-        e.despawnIfOutOfBounds();
+        bool destroyed = e.despawnIfOutOfBounds();
+        if (destroyed)
+            geometry->dynamicTree->removeBox(e.treeId);
     }
 
     geometry->broadPhase(entities);
@@ -56,6 +62,7 @@ void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
             continue;
 
         e.body.updatePosition(dt);
+        geometry->dynamicTree->moveBox(e.treeId, e.body.aabb, e.body.position - e.body.prevPosition);
     }
 }
 
@@ -70,6 +77,7 @@ void Game::processInput(MouseInput &mInput) {
             return;
 
         e->activate(glm::vec3(mInput.position.x, mInput.position.y, 0.0f));
+        e->treeId = geometry->dynamicTree->createBox(e->body.aabb);
     }
 }
 

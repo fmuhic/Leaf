@@ -218,6 +218,7 @@ void Renderer::draw(Scene &scene, Game &game) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     std::vector<AABB> boxes;
     game.geometry->dynamicTree->getAll(boxes);
+    std::cout << "Boxes size: " << boxes.size() << std::endl;
     for (auto &box: boxes) {
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 p = box.bottomLeft + (box.topRight - box.bottomLeft) * 0.5f;
@@ -230,7 +231,7 @@ void Renderer::draw(Scene &scene, Game &game) {
                 1.0f
             )
         );
-        drawEntity(shaderProgram, quad, scene, model, COLORS[7]);
+        drawEntity(shaderProgram, quad, scene, model, COLORS[3]);
     }
 
     // for (auto &e: game.entities) {

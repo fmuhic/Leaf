@@ -51,6 +51,7 @@ struct RigidBody {
     glm::vec3 acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 linearVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 position;
+    glm::vec3 prevPosition;
 
     f32 angularVelocity = 0.0f;
     f32 orientation = 0.0f;

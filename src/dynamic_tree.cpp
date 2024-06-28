@@ -34,7 +34,7 @@ void DynamicTree::removeBox(i32 boxId) {
 }
 
 bool DynamicTree::moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement) {
-    assert(boxId > 0 && boxId < capacity);
+    assert(boxId >= 0 && boxId < capacity);
 	assert(nodes[boxId].isLeaf());
 
 	AABB fatBox = newBox.fatten(fattenAmount);
@@ -250,10 +250,9 @@ void DynamicTree::getAll(std::vector<AABB>& boxes) {
         Node& node = nodes[stack.back()];
         stack.pop_back();
 
-        if (node.isLeaf()) {
+        if (!node.isLeaf()) {
             boxes.push_back(node.box);
-        }
-        else {
+
             stack.push_back(node.leftChild);
             stack.push_back(node.rightChild);
         }
