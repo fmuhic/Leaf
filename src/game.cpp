@@ -31,6 +31,9 @@ void Game::changeScene(Example *newExample) {
     example = newExample;
     example->setup(entities);
     for (auto& e: entities) {
+        if (!e.isAlive)
+            continue;
+
         i32 treeId = geometry->dynamicTree->createBox(e.body.aabb);
         e.treeId = treeId;
     }
