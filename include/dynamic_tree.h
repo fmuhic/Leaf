@@ -5,6 +5,7 @@
 #include "types.h"
 
 #include "glm/ext/vector_float3.hpp"
+#include <utility>
 #include <vector>
 
 #define NULL_NODE (-1)
@@ -14,6 +15,7 @@ struct Node {
     AABB box;
     i32 leftChild = NULL_NODE;
     i32 rightChild = NULL_NODE;
+    i32 height = -1;
 
     // In free list it's next, in tree it's parent
     union {
@@ -32,7 +34,7 @@ struct DynamicTree {
     i32 createBox(const AABB& box);
     void removeBox(i32 boxId);
     bool moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement);
-    void getAll(std::vector<AABB>& boxes);
+    void getAll(std::vector<std::pair<AABB, i32>>& boxes);
 
     private:
 

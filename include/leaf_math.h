@@ -13,9 +13,7 @@ glm::vec3 cross(glm::vec3 &v, f32 a);
 glm::vec3 cross(f32 a, glm::vec3 &v);
 bool closeTo(f32 a, f32 b, f32 delta);
 bool closeTo(glm::vec3 &a, glm::vec3 &b, f32 delta);
-f32 min(f32 a, f32 b);
 glm::vec3 min(glm::vec3 a, glm::vec3 b);
-f32 max(f32 a, f32 b);
 glm::vec3 max(glm::vec3 a, glm::vec3 b);
 f32 clamp(f32 val, f32 low, f32 high);
 
@@ -30,3 +28,12 @@ f32 pointLineDistance(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b);
 AABB fattenAABB(AABB &box, f32 amount);
 
 
+template <typename T>
+inline T min(T a, T b) {
+    return a < b ? a : b;
+}
+
+template <typename T>
+inline T max(T a, T b) {
+    return a > b ? a : b;
+}

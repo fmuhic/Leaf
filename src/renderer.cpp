@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <string>
 #include <assert.h>
 #include <iostream>
@@ -6,6 +7,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <utility>
 
 #include "body.h"
 #include "renderer.h"
@@ -66,6 +68,7 @@ Renderer::Renderer(f32 width, f32 height) {
 
     createCircleEntity(program, 0.5f, 32);
     createRectangleEntity(program);
+    createWiredRectangleEntity(program);
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -126,6 +129,47 @@ void Renderer::createCircleEntity(ui32 program, f32 r, i32 pointCount) {
     circle.ebo = EBO;
 }
 
+void Renderer::createWiredRectangleEntity(ui32 program) {
+    const ui32 vertexCount = 12;
+    wiredQuad.vertices = new f32[vertexCount] {
+         0.5f,  0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f
+    };
+
+    wiredQuad.indiceCount = 8;
+    wiredQuad.indices = new ui32[wiredQuad.indiceCount] {
+        0, 1, 1, 2, 2, 3, 3, 0
+    };
+
+    wiredQuad.shaderProgram = program;
+
+    ui32 VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+ 
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(f32), wiredQuad.vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.indiceCount * sizeof(ui32), wiredQuad.indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    wiredQuad.vao = VAO;
+    wiredQuad.vbo = VBO;
+    wiredQuad.ebo = EBO;
+}
+
 void Renderer::createRectangleEntity(ui32 program) {
     const ui32 vertexCount = 12;
     quad.vertices = new f32[vertexCount] {
@@ -184,6 +228,22 @@ void Renderer::drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &
     glDrawElements(GL_TRIANGLES, e.indiceCount, GL_UNSIGNED_INT, 0);
 }
 
+void Renderer::drawWiredEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color) {
+    GLint modelLocation = glGetUniformLocation(program, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+    GLint viewLocation = glGetUniformLocation(program, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(scene.camera));
+
+    GLint projectionLocation = glGetUniformLocation(program, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(scene.projection));
+
+    GLint vertexColorLocation = glGetUniformLocation(program, "vertexColor");
+    glUniform4f(vertexColorLocation, color.x, color.y, color.z, 1.0f);
+
+    glDrawElements(GL_LINES, e.indiceCount, GL_UNSIGNED_INT, 0);
+}
+
 void Renderer::draw(Scene &scene, Game &game) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -202,24 +262,24 @@ void Renderer::draw(Scene &scene, Game &game) {
     ui32 shaderProgram = quad.shaderProgram;
     glUseProgram(quad.shaderProgram);
 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
+    glBindBuffer(GL_ARRAY_BUFFER, quad.vbo);
     glBindVertexArray(quad.vao);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     for (auto &e: game.entities) {
         if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
         }
     }
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    std::vector<AABB> boxes;
+    glBindVertexArray(wiredQuad.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, wiredQuad.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
+    std::vector<std::pair<AABB, i32>> boxes;
     game.geometry->dynamicTree->getAll(boxes);
-    std::cout << "Boxes size: " << boxes.size() << std::endl;
-    for (auto &box: boxes) {
+    std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
+        return a.second > b.second;
+    });
+    for (auto &[box, height]: boxes) {
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 p = box.bottomLeft + (box.topRight - box.bottomLeft) * 0.5f;
         model = glm::translate(model, p);
@@ -231,7 +291,7 @@ void Renderer::draw(Scene &scene, Game &game) {
                 1.0f
             )
         );
-        drawEntity(shaderProgram, quad, scene, model, COLORS[3]);
+        drawWiredEntity(shaderProgram, wiredQuad, scene, model, SECONDARY_COLORS[height % SECONDARY_COLORS.size()]);
     }
 
     // for (auto &e: game.entities) {

@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstring>
 #include "dynamic_tree.h"
+#include "leaf_math.h"
 
 bool Node::isLeaf() {
     return leftChild == NULL_NODE && rightChild == NULL_NODE;
@@ -133,7 +134,7 @@ void DynamicTree::insertLeaf(i32 leafId) {
 	i32 newParent = createNode();
 	nodes[newParent].parent = oldParent;
 	nodes[newParent].box = leafBox.merge(nodes[bestsibling].box);
-	// nodes[newParent].height = nodes[bestsibling].height + 1;
+	nodes[newParent].height = nodes[bestsibling].height + 1;
 
     if (bestsibling == root) {
 		root = newParent;
@@ -156,6 +157,7 @@ void DynamicTree::insertLeaf(i32 leafId) {
         i32 leftChild = nodes[index].leftChild;
         i32 rightChild = nodes[index].rightChild;
 
+        nodes[index].height = max(nodes[leftChild].height, nodes[rightChild].height) + 1;
         nodes[index].box = nodes[leftChild].box.merge(nodes[rightChild].box);
         index = nodes[index].parent;
     }
@@ -192,6 +194,7 @@ void DynamicTree::removeLeaf(i32 boxId) {
             i32 leftChild = nodes[index].leftChild;
             i32 rightChild = nodes[index].rightChild;
 
+            nodes[index].height = max(nodes[leftChild].height, nodes[rightChild].height) + 1;
             nodes[index].box = nodes[leftChild].box.merge(nodes[rightChild].box);
             index = nodes[index].parent;
         }
@@ -210,6 +213,7 @@ i32 DynamicTree::createNode() {
     i32 nodeId = freeList;
     freeList = nodes[freeList].next;
     nodes[nodeId].parent = NULL_NODE;
+    nodes[nodeId].height = 0;
     ++count;
 
     return nodeId;
@@ -219,6 +223,7 @@ void DynamicTree::freeNode(i32 boxId) {
     assert(boxId >= 0 && boxId < capacity);
 	assert(count > 0);
 	nodes[boxId].next = freeList;
+	nodes[boxId].height = -1;
 	freeList = boxId;
 	--count;
 }
@@ -241,7 +246,7 @@ void DynamicTree::expandNodePool() {
 }
 
 
-void DynamicTree::getAll(std::vector<AABB>& boxes) {
+void DynamicTree::getAll(std::vector<std::pair<AABB, i32>>& boxes) {
     boxes.clear();
     std::vector<i32> stack;
     stack.push_back(root);
@@ -251,7 +256,7 @@ void DynamicTree::getAll(std::vector<AABB>& boxes) {
         stack.pop_back();
 
         if (!node.isLeaf()) {
-            boxes.push_back(node.box);
+            boxes.push_back(std::pair(node.box, node.height));
 
             stack.push_back(node.leftChild);
             stack.push_back(node.rightChild);

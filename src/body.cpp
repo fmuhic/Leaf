@@ -101,7 +101,8 @@ void RigidBody::updateVelocity(f32 dt) {
     if (inverseMass == 0.0f)
         return;
 
-    glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
+    // glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
+    glm::vec3 gravity = glm::vec3(0.0f, 0.0f, 0.0f);
     linearVelocity += (acceleration + gravity) * dt;
 }
 
