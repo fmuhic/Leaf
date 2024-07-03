@@ -20,10 +20,33 @@ DynamicTree::DynamicTree() {
 DynamicTree::~DynamicTree() {
     delete [] nodes;
 }
+void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
+    candidates.clear();
+    std::vector<i32> stack;
+    stack.push_back(root);
 
-i32 DynamicTree::createBox(const AABB &box) {
+    while (!stack.empty()) {
+        i32 index = stack.back();
+        Node& node = nodes[index];
+        stack.pop_back();
+
+        if (!box.overlaps(node.box))
+            continue;
+
+        if (node.isLeaf()) {
+            candidates.push_back(nodes[index].data.entityId);
+        } else {
+            stack.push_back(node.leftChild);
+            stack.push_back(node.rightChild);
+        }
+    }
+
+}
+
+i32 DynamicTree::createBox(const AABB &box, UserData data) {
     i32 boxId = createNode();
     nodes[boxId].box = box.fatten(fattenAmount);
+    nodes[boxId].data = data;
     insertLeaf(boxId);
     return boxId;
 }
@@ -105,7 +128,7 @@ void DynamicTree::insertLeaf(i32 leafId) {
             leftCost = leftCombinedCost + inheritedCost;
         } else {
             f32 oldCost = nodes[leftChild].box.perimiter();
-            leftCost = (leftCombinedCost - oldCost) + inheritedCost;
+            leftCost = leftCombinedCost - oldCost + inheritedCost;
         }
 
         f32 rightCost;
@@ -114,7 +137,7 @@ void DynamicTree::insertLeaf(i32 leafId) {
             rightCost = rightCombinedCost + inheritedCost;
         } else {
             f32 oldCost = nodes[rightChild].box.perimiter();
-            rightCost = (rightCombinedCost - oldCost) + inheritedCost;
+            rightCost = rightCombinedCost - oldCost + inheritedCost;
         }
 
 		if (cost < leftCost && cost < rightCost) {
@@ -204,6 +227,24 @@ void DynamicTree::removeLeaf(i32 boxId) {
     freeNode(parent);
 }
 
+i32 DynamicTree::balance(i32 indexA) {
+    assert(indexA != NULL_NODE);
+    Node& A = nodes[indexA];
+
+    if (A.isLeaf() || A.height < 2)
+        return indexA;
+
+    i32 indexB = nodes[indexA].leftChild;
+    i32 indexC = nodes[indexA].rightChild;
+
+    Node &B = nodes[indexB];
+    Node &C = nodes[indexC];
+
+    [[maybe_unused]]i32 balance = C.height - B.height;
+
+    return indexA;
+}
+
 i32 DynamicTree::createNode() {
     if (freeList == NULL_NODE) {
         expandNodePool();
@@ -224,6 +265,7 @@ void DynamicTree::freeNode(i32 boxId) {
 	assert(count > 0);
 	nodes[boxId].next = freeList;
 	nodes[boxId].height = -1;
+    nodes[boxId].data = UserData(-1);
 	freeList = boxId;
 	--count;
 }

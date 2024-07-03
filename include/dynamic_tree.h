@@ -11,6 +11,13 @@
 #define NULL_NODE (-1)
 #define INIT_TREE_CAPACITY 4
 
+struct UserData {
+    UserData(i32 id): entityId(id) {}
+    UserData(): UserData(-1) {}
+
+    i32 entityId;
+};
+
 struct Node {
     AABB box;
     i32 leftChild = NULL_NODE;
@@ -23,6 +30,8 @@ struct Node {
         i32 next;
     };
 
+    UserData data;
+
     bool isLeaf();
 };
 
@@ -31,7 +40,8 @@ struct DynamicTree {
     DynamicTree();
     ~DynamicTree();
 
-    i32 createBox(const AABB& box);
+    void checkIntersections(AABB& box, std::vector<i32>& candidates);
+    i32 createBox(const AABB& box, UserData data);
     void removeBox(i32 boxId);
     bool moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement);
     void getAll(std::vector<std::pair<AABB, i32>>& boxes);
@@ -43,6 +53,7 @@ struct DynamicTree {
     void expandNodePool();
     void insertLeaf(i32 boxId);
     void removeLeaf(i32 boxId);
+    i32 balance(i32 indexA);
 
     Node* nodes = nullptr;
     i32 count = 0;

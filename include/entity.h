@@ -3,6 +3,7 @@
 #include "body.h"
 #include "const.h"
 #include "helpers.h"
+#include <cassert>
 
 struct Entity {
     bool despawnIfOutOfBounds() {
@@ -18,12 +19,13 @@ struct Entity {
     }
 
     void activate(glm::vec3 position) {
+        assert(treeId == -1);
         isAlive = true;
         body.reset(position);
     }
 
     bool isAlive = false;
     RigidBody body;
-    i32 treeId;
+    i32 treeId = -1;
     glm::vec3 color = COLORS[pickRand(0, COLORS.size() - 1)];
 };

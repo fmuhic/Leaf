@@ -29,6 +29,20 @@ bool AABB::contains(AABB& other) const {
         topRight.y >= other.topRight.y;
 }
 
+bool AABB::overlaps(AABB& other) const {
+    glm::vec3 d1 = bottomLeft - other.topRight;
+    glm::vec3 d2 = other.bottomLeft - topRight;
+
+	if (d1.x > 0.0f || d1.y > 0.0f)
+		return false;
+
+	if (d2.x > 0.0f || d2.y > 0.0f)
+		return false;
+
+	return true;
+
+}
+
 RigidBody::RigidBody(): RigidBody(
     BodyType::RECTANGLE,
     glm::vec3(1.0f, 1.0f, 1.0f),
@@ -101,8 +115,8 @@ void RigidBody::updateVelocity(f32 dt) {
     if (inverseMass == 0.0f)
         return;
 
-    // glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
-    glm::vec3 gravity = glm::vec3(0.0f, 0.0f, 0.0f);
+    glm::vec3 gravity = glm::vec3(0.0f, -9.81f, 0.0f);
+    // glm::vec3 gravity = glm::vec3(0.0f, 0.0f, 0.0f);
     linearVelocity += (acceleration + gravity) * dt;
 }
 

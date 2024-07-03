@@ -19,7 +19,7 @@ glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 #define GAME_UPDATE_INTERVAL_SEC 1.0f / 60.0f
-#define ENTITY_COUNT 100
+#define ENTITY_COUNT 500
 
 using std::cout;
 using std::endl;

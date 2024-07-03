@@ -1,6 +1,7 @@
 #include "geometry.h"
 #include "body.h"
 #include "leaf_math.h"
+#include <algorithm>
 
 #define BODY_A_ID 0
 #define BODY_B_ID 1
@@ -22,27 +23,47 @@ void Geometry::reset() {
 
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
+    std::vector<i32> localCandidates;
 
-    for (ui32 i = 0; i < entities.size() - 1; ++i) {
+    for (i32 i = 0; i < (i32) entities.size() - 1; ++i) {
         Entity &a = entities.at(i);
+        if (!a.isAlive)
+            continue;
 
-        for (ui32 j = i + 1; j < entities.size(); ++j) {
-            Entity &b = entities.at(j);
-
-            if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
-                continue;
-
-            if (!b.isAlive || !a.isAlive || !aabbIntersect(a.body.aabb, b.body.aabb)) {
-                collisions.erase(CollisionKey(i, j));
-                continue;
+        dynamicTree->checkIntersections(a.body.aabb, localCandidates);
+        for (i32 c: localCandidates) {
+            if (c > i) {
+                assert(a.body.inverseMass != 0.0f || entities.at(c).body.inverseMass != 0.0f);
+                candidates.push_back(CollisionKey(i, c));
             }
+        }
 
-            candidates.push_back(CollisionKey(i, j));
+        // for (ui32 j = i + 1; j < entities.size(); ++j) {
+        //     Entity &b = entities.at(j);
+        //
+        //     if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
+        //         continue;
+        //
+        //     if (!b.isAlive || !a.isAlive || !aabbIntersect(a.body.aabb, b.body.aabb)) {
+        //         collisions.erase(CollisionKey(i, j));
+        //         continue;
+        //     }
+        //
+        //     candidates.push_back(CollisionKey(i, j));
+        // }
+    }
+    std::vector<CollisionKey> cs;
+    for (auto& [key, _]: collisions) {
+        if (std::find(candidates.begin(), candidates.end(), key) == candidates.end()) {
+            cs.push_back(key);
         }
     }
+    for (auto &c: cs)
+        collisions.erase(c);
 }
 
 void Geometry::narrowPhase(std::vector<Entity>& entities) {
+    std::cout << "candidates size = " << candidates.size() << ", entities size = " << entities.size() << "\n";
     for (auto &candidate: candidates) {
         Entity &a = entities.at(candidate.first);
         Entity &b = entities.at(candidate.second);
