@@ -63,7 +63,6 @@ void Geometry::broadPhase(vector<Entity>& entities) {
 }
 
 void Geometry::narrowPhase(std::vector<Entity>& entities) {
-    std::cout << "candidates size = " << candidates.size() << ", entities size = " << entities.size() << "\n";
     for (auto &candidate: candidates) {
         Entity &a = entities.at(candidate.first);
         Entity &b = entities.at(candidate.second);

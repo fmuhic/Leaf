@@ -16,7 +16,8 @@ struct Physics {
     void applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b);
     void applyTangentImpulse(Collision& collision, RigidBody& a, RigidBody& b);
 
-    i32 correctionCount = 20;
+    // revert this
+    i32 correctionCount = 50;
     f32 positionCorrectionFactor = 0.2f;
     f32 allowedPenetration = 0.01f;
 };

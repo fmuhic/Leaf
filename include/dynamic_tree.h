@@ -45,6 +45,8 @@ struct DynamicTree {
     void removeBox(i32 boxId);
     bool moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement);
     void getAll(std::vector<std::pair<AABB, i32>>& boxes);
+    f32 quality();
+    i32 height();
 
     private:
 
@@ -53,7 +55,7 @@ struct DynamicTree {
     void expandNodePool();
     void insertLeaf(i32 boxId);
     void removeLeaf(i32 boxId);
-    i32 balance(i32 indexA);
+    void balance(i32 indexA);
 
     Node* nodes = nullptr;
     i32 count = 0;

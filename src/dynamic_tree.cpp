@@ -3,6 +3,14 @@
 #include "dynamic_tree.h"
 #include "leaf_math.h"
 
+enum class TreeRotation {
+    NONE,
+    ROTATE_BF,
+    ROTATE_BG,
+    ROTATE_CD,
+    ROTATE_CE
+};
+
 bool Node::isLeaf() {
     return leftChild == NULL_NODE && rightChild == NULL_NODE;
 }
@@ -175,13 +183,14 @@ void DynamicTree::insertLeaf(i32 leafId) {
 
     index = nodes[leafId].parent;
     while (index != NULL_NODE) {
-        // Rebalance tree first
-        
         i32 leftChild = nodes[index].leftChild;
         i32 rightChild = nodes[index].rightChild;
 
         nodes[index].height = max(nodes[leftChild].height, nodes[rightChild].height) + 1;
         nodes[index].box = nodes[leftChild].box.merge(nodes[rightChild].box);
+
+        balance(index);
+
         index = nodes[index].parent;
     }
 }
@@ -212,13 +221,12 @@ void DynamicTree::removeLeaf(i32 boxId) {
 
         i32 index = grandParent;
         while (index != NULL_NODE) {
-            // Rebalance tree first
-            
             i32 leftChild = nodes[index].leftChild;
             i32 rightChild = nodes[index].rightChild;
 
             nodes[index].height = max(nodes[leftChild].height, nodes[rightChild].height) + 1;
             nodes[index].box = nodes[leftChild].box.merge(nodes[rightChild].box);
+
             index = nodes[index].parent;
         }
     }
@@ -227,22 +235,230 @@ void DynamicTree::removeLeaf(i32 boxId) {
     freeNode(parent);
 }
 
-i32 DynamicTree::balance(i32 indexA) {
+//...........
+//....A......  
+//.../.\.....
+//..B...C ...
+//./.\./.\...
+//.D.E.F.G...
+//...........
+void DynamicTree::balance(i32 indexA) {
     assert(indexA != NULL_NODE);
     Node& A = nodes[indexA];
 
-    if (A.isLeaf() || A.height < 2)
-        return indexA;
+    if (A.isLeaf() || A.height < 2) {
+        return;
+    }
 
     i32 indexB = nodes[indexA].leftChild;
     i32 indexC = nodes[indexA].rightChild;
-
     Node &B = nodes[indexB];
     Node &C = nodes[indexC];
 
-    [[maybe_unused]]i32 balance = C.height - B.height;
+    if (B.isLeaf()) {
+        assert(B.height == 0);
+        assert(C.height > 0 && "C has to be internal node");
 
-    return indexA;
+        i32 indexF = nodes[indexC].leftChild;
+        i32 indexG = nodes[indexC].rightChild;
+        Node &F = nodes[indexF];
+        Node &G = nodes[indexG];
+        
+        AABB boxBF = B.box.merge(F.box);
+        AABB boxBG = B.box.merge(G.box);
+
+        f32 costC = C.box.perimiter(); 
+        f32 costBF = boxBG.perimiter();
+        f32 costBG = boxBF.perimiter();
+
+        if (costC <= costBF && costC <= costBG) {
+            // Rotation will not imporove tree
+            return;
+        }
+
+        if (costBF < costBG) {
+            // Rotate B <-> F
+            A.leftChild = indexF;
+            F.parent = indexA;
+
+            C.leftChild = indexB;
+            B.parent = indexC;
+
+            C.box = boxBG;
+
+            C.height = max(B.height, G.height) + 1;
+			A.height = max(C.height, F.height) + 1;
+        } else {
+            // Rotate B <-> G
+            A.leftChild = indexG;
+            G.parent = indexA;
+
+            C.rightChild = indexB;
+            B.parent = indexC;
+
+            C.box = boxBF;
+
+            C.height = max(F.height, B.height) + 1;
+			A.height = max(G.height, C.height) + 1;
+        }
+    }
+    else if (C.isLeaf()) {
+        assert(C.height == 0);
+        assert(B.height > 0 && "B has to be internal node");
+
+        i32 indexD = nodes[indexB].leftChild;
+        i32 indexE = nodes[indexB].rightChild;
+        Node &D = nodes[indexD];
+        Node &E = nodes[indexE];
+        
+        AABB boxCD = C.box.merge(D.box);
+        AABB boxCE = C.box.merge(E.box);
+
+        f32 costB = B.box.perimiter(); 
+        f32 costCD = boxCE.perimiter();
+        f32 costCE = boxCD.perimiter();
+
+        if (costB <= costCD && costB <= costCE) {
+            // Rotation will not imporove tree
+            return;
+        }
+
+        if (costCD < costCE) {
+            // Rotate C <-> D
+            A.rightChild = indexD;
+            D.parent = indexA;
+
+            B.leftChild = indexC;
+            C.parent = indexB;
+
+            B.box = boxCE;
+
+            B.height = max(C.height, E.height) + 1;
+			A.height = max(B.height, D.height) + 1;
+        } else {
+            // Rotate C <-> E
+            A.rightChild = indexE;
+            E.parent = indexA;
+
+            B.rightChild = indexC;
+            C.parent = indexB;
+
+            B.box = boxCD;
+
+            B.height = max(D.height, C.height) + 1;
+			A.height = max(B.height, E.height) + 1;
+        }
+    }
+    else {
+        // Both children are internal nodes
+        i32 indexD = nodes[indexB].leftChild;
+        i32 indexE = nodes[indexB].rightChild;
+        i32 indexF = nodes[indexC].leftChild;
+        i32 indexG = nodes[indexC].rightChild;
+
+        Node &D = nodes[indexD];
+        Node &E = nodes[indexE];
+        Node &F = nodes[indexF];
+        Node &G = nodes[indexG];
+
+        f32 costB = B.box.perimiter();
+        f32 costC = C.box.perimiter();
+        f32 costBC = costB + costC;
+        TreeRotation bestRotation = TreeRotation::NONE;
+        f32 bestCost = costBC;
+
+        // Check B <=> F rotation
+		AABB boxBG = B.box.merge(G.box);
+		f32 costBF = costB + boxBG.perimiter();
+		if (costBF < bestCost) {
+			bestCost = costBF;
+			bestRotation = TreeRotation::ROTATE_BF;
+		}
+
+        // Check B <=> G rotation
+		AABB boxBF = B.box.merge(F.box);
+		f32 costBG = costB + boxBF.perimiter();
+		if (costBG < bestCost) {
+			bestCost = costBG;
+			bestRotation = TreeRotation::ROTATE_BG;
+		}
+
+        // Check C <=> D rotation
+		AABB boxCE = C.box.merge(E.box);
+		f32 costCD = costC + boxCE.perimiter();
+		if (costCD < bestCost) {
+			bestCost = costCD;
+			bestRotation = TreeRotation::ROTATE_CD;
+		}
+
+        // Check C <=> E rotation
+		AABB boxCD = C.box.merge(D.box);
+		f32 costCE = costC + boxCD.perimiter();
+		if (costCE < bestCost) {
+			bestRotation = TreeRotation::ROTATE_CE;
+        }
+
+        switch (bestRotation) {
+            case TreeRotation::NONE:
+				break;
+
+            case TreeRotation::ROTATE_BF:
+                A.leftChild = indexF;
+                F.parent = indexA;
+
+                C.leftChild = indexB;
+                B.parent = indexC;
+
+                C.box = boxBG;
+
+                C.height = max(B.height, G.height) + 1;
+                A.height = max(C.height, F.height) + 1;
+				break;
+
+            case TreeRotation::ROTATE_BG:
+                A.leftChild = indexG;
+                G.parent = indexA;
+
+                C.rightChild = indexB;
+                B.parent = indexC;
+
+                C.box = boxBF;
+
+                C.height = max(F.height, B.height) + 1;
+                A.height = max(G.height, C.height) + 1;
+				break;
+
+            case TreeRotation::ROTATE_CD:
+                A.rightChild = indexD;
+                D.parent = indexA;
+
+                B.leftChild = indexC;
+                C.parent = indexB;
+
+                B.box = boxCE;
+
+                B.height = max(C.height, E.height) + 1;
+                A.height = max(B.height, D.height) + 1;
+				break;
+
+            case TreeRotation::ROTATE_CE:
+                A.rightChild = indexE;
+                E.parent = indexA;
+
+                B.rightChild = indexC;
+                C.parent = indexB;
+
+                B.box = boxCD;
+
+                B.height = max(D.height, C.height) + 1;
+                A.height = max(B.height, E.height) + 1;
+				break;
+
+			default:
+				break;
+		}
+
+    }
 }
 
 i32 DynamicTree::createNode() {
@@ -296,12 +512,38 @@ void DynamicTree::getAll(std::vector<std::pair<AABB, i32>>& boxes) {
     while (!stack.empty()) {
         Node& node = nodes[stack.back()];
         stack.pop_back();
+        boxes.push_back(std::pair(node.box, node.height));
 
         if (!node.isLeaf()) {
-            boxes.push_back(std::pair(node.box, node.height));
+            stack.push_back(node.leftChild);
+            stack.push_back(node.rightChild);
+        }
+    }
+}
+
+f32 DynamicTree::quality() {
+    if (root == NULL_NODE)
+        return 0.0f;
+
+    std::vector<i32> stack;
+    stack.push_back(root);
+    f32 cost = 0.0f;
+
+    while (!stack.empty()) {
+        Node& node = nodes[stack.back()];
+        stack.pop_back();
+
+        if (!node.isLeaf()) {
+            cost += node.box.perimiter();
 
             stack.push_back(node.leftChild);
             stack.push_back(node.rightChild);
         }
     }
+
+    return cost / nodes[root].box.perimiter();
+}
+
+i32 DynamicTree::height() {
+    return nodes[root].height;
 }

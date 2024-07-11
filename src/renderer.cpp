@@ -276,6 +276,7 @@ void Renderer::draw(Scene &scene, Game &game) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
     std::vector<std::pair<AABB, i32>> boxes;
     game.geometry->dynamicTree->getAll(boxes);
+    std::cout << "Tree quality: " << game.geometry->dynamicTree->quality() << ", count = " << boxes.size() << ", height = " << game.geometry->dynamicTree->height() << std::endl;
     std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
         return a.second > b.second;
     });
