@@ -17,6 +17,7 @@ add_executable(leaf
     src/dynamic_tree.cpp
     src/input.cpp
     src/body.cpp
+    src/leaf.cpp
     src/geometry.cpp
     src/const.cpp
     src/loader.cpp

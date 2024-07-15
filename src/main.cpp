@@ -8,6 +8,7 @@
 #include "renderer.h"
 #include "input.h"
 #include "game.h"
+#include "leaf.h"
 #include "examples/thumbler.h"
 #include "examples/stacking.h"
 
@@ -28,6 +29,7 @@ using glm::vec3;
 Renderer* renderer;
 Scene* scene;
 Game *game;
+Leaf *leaf;
 
 int main() {
     glfwInit();
