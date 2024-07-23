@@ -26,6 +26,7 @@ struct Entity {
 
     bool isAlive = false;
     RigidBody body;
+    i32 bodyId = -1;
     i32 treeId = -1;
     glm::vec3 color = COLORS[pickRand(0, COLORS.size() - 1)];
 };

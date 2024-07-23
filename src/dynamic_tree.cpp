@@ -51,7 +51,7 @@ void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
 
 }
 
-i32 DynamicTree::createBox(const AABB &box, UserData data) {
+i32 DynamicTree::createBox(const AABB &box, TreeData data) {
     i32 boxId = createNode();
     nodes[boxId].box = box.fatten(fattenAmount);
     nodes[boxId].data = data;
@@ -481,7 +481,7 @@ void DynamicTree::freeNode(i32 boxId) {
 	assert(count > 0);
 	nodes[boxId].next = freeList;
 	nodes[boxId].height = -1;
-    nodes[boxId].data = UserData(-1);
+    nodes[boxId].data = TreeData(-1);
 	freeList = boxId;
 	--count;
 }

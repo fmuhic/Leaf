@@ -2,12 +2,13 @@
 
 #include "types.h"
 #include <cassert>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <string>
 
 template <typename T>
-class ObjectPool {
+class ListPool {
     public:
 
     inline static i32 END = -1;
@@ -17,19 +18,14 @@ class ObjectPool {
         i32 next;
     };
 
-    ObjectPool(i32 initCapacity = 16);
-    ~ObjectPool();
+    ListPool(i32 initCapacity = 16);
+    ~ListPool();
 
-    i32 reserve();
+    i32 reserve(i32 amount);
     void free(i32 id);
     inline i32 next(i32 prev) {
-        if (prev == END)
-            return END;
-
+        assert(prev != END);
         return nodes[prev].next;
-    }
-    inline i32 getFirst() {
-        return elements;
     }
 
     T& operator [] (i32 index) {
@@ -41,18 +37,17 @@ class ObjectPool {
 
     private:
 
-    void expandPool();
+    void expandPool(i32 minCapacity);
 
     Node* nodes = nullptr;
     i32 capacity;
     i32 size = 0;
     i32 freeList = 0;
-    i32 elements = END;
 };
 
 
 template <typename T>
-ObjectPool<T>::ObjectPool(i32 initCapacity): capacity(initCapacity) {
+ListPool<T>::ListPool(i32 initCapacity): capacity(initCapacity) {
     assert(capacity > 0);
     nodes = new Node[capacity];
 
@@ -64,31 +59,36 @@ ObjectPool<T>::ObjectPool(i32 initCapacity): capacity(initCapacity) {
 }
 
 template <typename T>
-ObjectPool<T>::~ObjectPool() {
+ListPool<T>::~ListPool() {
     delete [] nodes;
 }
 
 template <typename T>
-i32 ObjectPool<T>::reserve() {
-    if (freeList == END) {
-        expandPool();
+i32 ListPool<T>::reserve(i32 amount) {
+    if (size + amount > capacity) {
+        expandPool(size + amount);
         assert(freeList != END);
     }
 
+    i32 lastNode = freeList;
+    for (i32 i = 0; i < amount - 1; ++i) {
+        lastNode = nodes[lastNode].next;
+    }
+
     i32 nodeId = freeList;
-    freeList = nodes[freeList].next;
-    nodes[nodeId].next = elements;
-    elements = nodeId;
-    ++size;
+    freeList = nodes[lastNode].next;
+    nodes[lastNode].next = END;
+    size += amount;
 
     return nodeId;
 }
 
 template <typename T>
-void ObjectPool<T>::expandPool() {
-    assert(size == capacity);
-
+void ListPool<T>::expandPool(i32 minCapacity) {
     capacity *= 2;
+    if (capacity < minCapacity)
+        capacity = minCapacity;
+
     Node* old = nodes; 
     nodes = new Node[capacity];
     memcpy(nodes, old, size * sizeof(Node));
@@ -103,18 +103,25 @@ void ObjectPool<T>::expandPool() {
 }
 
 template <typename T>
-void ObjectPool<T>::free(i32 id) {
+void ListPool<T>::free(i32 id) {
     assert(id >= 0 && id < capacity);
 	assert(size > 0);
 
-    elements = nodes[id].next;
-	nodes[id].next = freeList;
-	freeList = id;
-	--size;
+    i32 lastNode = id;
+    i32 amount = 1;
+    while (nodes[lastNode].next != END) {
+        lastNode = nodes[lastNode].next;
+        ++amount;
+    }
+
+    nodes[lastNode].next = freeList;
+    freeList = id;
+    size -= amount;
+    assert(size >= 0);
 }
 
 template <typename T>
-void ObjectPool<T>::debug(std::string name) {
+void ListPool<T>::debug(std::string name) {
     std::cout << name << ": Capacity(" << capacity << "), Size(" << size << ")\n";
     i32 freeSize = 0;
     i32 iter = freeList;
@@ -123,12 +130,6 @@ void ObjectPool<T>::debug(std::string name) {
         ++freeSize;
     }
 
-    i32 fullSize = 0;
-    iter = elements;
-    while (iter != END) {
-        iter = nodes[iter].next;
-        ++fullSize;
-    }
-    std::cout << name << ": Free(" << freeSize << "), Full(" << fullSize << ")\n";
+    std::cout << name << ": Free(" << freeSize << ")\n";
     std::cout << "______________________________________________\n";
 }

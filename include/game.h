@@ -1,11 +1,14 @@
 #pragma once
 
+#include <stack>
 #include <vector>
 
 #include "geometry.h"
+#include "leaf.h"
 #include "physics.h"
 #include "types.h"
 #include "input.h"
+#include "entity_system.h"
 #include "examples/example.h"
 
 struct Game {
@@ -27,4 +30,7 @@ struct Game {
 
     Physics* physics = nullptr;
     Example* example = nullptr;
+    Leaf* leaf = nullptr;
+    EntitySystem* entitySystem = nullptr;
+    std::stack<i32> ids;
 };

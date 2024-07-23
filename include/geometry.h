@@ -4,6 +4,7 @@
 #include <map>
 
 #include "dynamic_tree.h"
+#include "object_pool.h"
 #include "types.h"
 #include "entity.h"
 #include "body.h"

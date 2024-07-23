@@ -266,7 +266,7 @@ void Renderer::draw(Scene &scene, Game &game) {
     glBindBuffer(GL_ARRAY_BUFFER, quad.vbo);
     glBindVertexArray(quad.vao);
     for (auto &e: game.entities) {
-        if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
+        if (e.isAlive && e.body.type == GeometryType::BOX) {
             drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
         }
     }
@@ -276,7 +276,6 @@ void Renderer::draw(Scene &scene, Game &game) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
     std::vector<std::pair<AABB, i32>> boxes;
     game.geometry->dynamicTree->getAll(boxes);
-    std::cout << "Tree quality: " << game.geometry->dynamicTree->quality() << ", count = " << boxes.size() << ", height = " << game.geometry->dynamicTree->height() << std::endl;
     std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
         return a.second > b.second;
     });
@@ -296,7 +295,7 @@ void Renderer::draw(Scene &scene, Game &game) {
     }
 
     // for (auto &e: game.entities) {
-    //     if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
+    //     if (e.isAlive && e.body.type == GeometryType::BOX) {
     //         drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
     //     }
     // }

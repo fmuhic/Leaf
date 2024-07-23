@@ -20,15 +20,34 @@ struct AABB {
     glm::vec3 topRight;
 };
 
+enum struct GeometryType: ui32 {
+    BOX = 0,
+    CIRCLE = 1
+};
+
 enum struct BodyType: ui32 {
-    RECTANGLE,
-    CIRCLE
+    DYNAMIC = 0,
+    KINEMATIC = 1,
+    STATIC = 2
+};
+
+struct UserData {
+    i32 entityId = -1;
+};
+
+struct BodyConfig {
+    glm::vec3 position = glm::vec3();
+    glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    f32 orientation = 0.0f;
+    f32 friction = 0.5f;
+    f32 restitution = 0.5f;
+    bool immovable = false;
 };
 
 struct RigidBody {
     RigidBody();
     RigidBody(
-        BodyType type,
+        GeometryType type,
         glm::vec3 scale,
         bool immovable,
         glm::vec3 initPosition,
@@ -37,17 +56,19 @@ struct RigidBody {
         f32 dynamicFriction,
         f32 restitution
     );
+    RigidBody(BodyConfig config, GeometryType type, UserData data = UserData());
 
     void reset(glm::vec3 newPosition);
     void updateVelocity(f32 dt);
     void updatePosition(f32 dt);
 
-    BodyType type ;
+    GeometryType type ;
     AABB aabb;
     glm::vec3 scale;
     glm::mat4 model;
     glm::vec3 vertices[MAX_VERTEX_COUNT];
     i32 vertexCount;
+    i32 verticesId;
 
     glm::vec3 acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 linearVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -64,6 +85,8 @@ struct RigidBody {
     f32 staticFriction;
     f32 dynamicFriction;
     f32 restitution;
+
+    UserData data;
 
     private:
 

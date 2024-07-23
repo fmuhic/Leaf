@@ -22,7 +22,7 @@ void StackingExample::createImmovableGround(std::vector<Entity>& entities) {
         return;
 
     e->body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(25.0f, 1.0f, 1.0f),
         true,
         glm::vec3(0.0f, -8.0f, 0.0f),
@@ -44,7 +44,7 @@ void StackingExample::createPilar(std::vector<Entity>& entities, glm::vec3 posit
                 return;
 
             e->body = RigidBody(
-                BodyType::RECTANGLE,
+                GeometryType::BOX,
                 glm::vec3(1.0f, 1.0f, 1.0f),
                 false,
                 position + glm::vec3(

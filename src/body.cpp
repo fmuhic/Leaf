@@ -40,11 +40,10 @@ bool AABB::overlaps(AABB& other) const {
 		return false;
 
 	return true;
-
 }
 
 RigidBody::RigidBody(): RigidBody(
-    BodyType::RECTANGLE,
+    GeometryType::BOX,
     glm::vec3(1.0f, 1.0f, 1.0f),
     false,
     glm::vec3(0.0f, 0.0f, 0.0f),
@@ -54,8 +53,21 @@ RigidBody::RigidBody(): RigidBody(
     0.5f
 ) {}
 
+RigidBody::RigidBody(BodyConfig config, GeometryType type, UserData data): RigidBody(
+    type,
+    config.scale,
+    config.immovable,
+    config.position,
+    config.orientation,
+    config.friction,
+    config.friction,
+    config.restitution
+) { 
+    this->data = data;
+}
+
 RigidBody::RigidBody(
-    BodyType type,
+    GeometryType type,
     glm::vec3 scale,
     bool immovable,
     glm::vec3 initPosition,
@@ -74,13 +86,13 @@ RigidBody::RigidBody(
     restitution(restitution)
 {
     switch (type) {
-        case BodyType::RECTANGLE: {
+        case GeometryType::BOX: {
             mass = scale.x * scale.y;
             inertia = 1.0f / 12.0f * mass * (scale.x * scale.x + scale.y * scale.y);
             vertexCount = 4;
         } break;
 
-        case BodyType::CIRCLE: {
+        case GeometryType::CIRCLE: {
             mass = scale.x * scale.x;
             inertia = 0.5f * mass * scale.x * scale.x;
             vertexCount = 0;
@@ -141,14 +153,14 @@ void RigidBody::transformToWorld() {
     model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
 
     switch (type) {
-        case BodyType::RECTANGLE: {
+        case GeometryType::BOX: {
             vertices[0] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
             vertices[1] = model * glm::vec4(0.5f, -0.5f, 0.0f, 1.0f);
             vertices[2] = model * glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f);
             vertices[3] = model * glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f);
         } break;
 
-        case BodyType::CIRCLE: {
+        case GeometryType::CIRCLE: {
             vertices[0] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
         } break;
     }
@@ -156,7 +168,7 @@ void RigidBody::transformToWorld() {
 
 void RigidBody::updateAABB() {
     switch (type) {
-        case BodyType::RECTANGLE: {
+        case GeometryType::BOX: {
             f32 xMin = vertices[0].x;
             f32 xMax = vertices[0].x;
             f32 yMin = vertices[0].y;
@@ -174,7 +186,7 @@ void RigidBody::updateAABB() {
             aabb.topRight = glm::vec3(xMax, yMax, 0.0f);
         } break;
 
-        case BodyType::CIRCLE: {
+        case GeometryType::CIRCLE: {
             aabb.topRight = position + vertices[0];
             aabb.bottomLeft = position - vertices[0];
         } break;

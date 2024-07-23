@@ -4,7 +4,7 @@
 void Thumbler::setup(std::vector<Entity>& entities) {
     Entity& e0 = entities[0];
     e0.body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(12.0f, 1.0f, 1.0f),
         true,
         glm::vec3(0.0f, -6.0f, 0.0f),
@@ -18,7 +18,7 @@ void Thumbler::setup(std::vector<Entity>& entities) {
 
     Entity &e1 = entities[1];
     e1.body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(12.0f, 1.0f, 1.0f),
         true,
         glm::vec3(0.0f, 6.0f, 0.0f),
@@ -32,7 +32,7 @@ void Thumbler::setup(std::vector<Entity>& entities) {
 
     Entity &e2 = entities[2];
     e2.body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(1.0f, 13.0f, 1.0f),
         true,
         glm::vec3(7.0f, 0.0f, 0.0f),
@@ -46,7 +46,7 @@ void Thumbler::setup(std::vector<Entity>& entities) {
 
     Entity &e3 = entities[3];
     e3.body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(1.0f, 13.0f, 1.0f),
         true,
         glm::vec3(-7.0f, 0.0f, 0.0f),
@@ -69,7 +69,7 @@ void Thumbler::setup(std::vector<Entity>& entities) {
                 return;
 
             e->body = RigidBody(
-                BodyType::RECTANGLE,
+                GeometryType::BOX,
                 glm::vec3(1.0f, 1.0f, 1.0f),
                 false,
                 initPosition + glm::vec3(

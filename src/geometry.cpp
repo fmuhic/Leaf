@@ -20,7 +20,6 @@ void Geometry::reset() {
     candidates.clear();
     collisions.clear();
 }
-
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
     std::vector<i32> localCandidates;
@@ -68,7 +67,7 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
         Entity &b = entities.at(candidate.second);
 
         Collision c;
-        if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
+        if (a.body.type == GeometryType::BOX && b.body.type == GeometryType::BOX)
             c = checkPlygonPolygon(a.body, b.body);
         else
             assert(false && "Circles not implemented for now");

@@ -7,7 +7,7 @@ void SliderExample::setup(std::vector<Entity>& entities) {
         return;
 
     e->body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(20.0f, 1.0f, 1.0f),
         true,
         glm::vec3(-4.5f, 5.0f, 0.0f),
@@ -24,7 +24,7 @@ void SliderExample::setup(std::vector<Entity>& entities) {
         return;
 
     e->body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(20.0f, 1.0f, 1.0f),
         true,
         glm::vec3(4.0f, -3.0f, 0.0f),
@@ -47,7 +47,7 @@ void SliderExample::update(std::vector<Entity>& entities, [[maybe_unused]] f32 e
         return;
 
     e->body = RigidBody(
-        BodyType::RECTANGLE,
+        GeometryType::BOX,
         glm::vec3(pickRand(7, 12) / 10.0f, pickRand(7, 12) / 10.0f, 1.0f),
         false,
         glm::vec3(-6.0f, 10.0f, 0.0f),

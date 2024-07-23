@@ -1,6 +1,7 @@
 #include "game.h"
 #include "body.h"
 #include "dynamic_tree.h"
+#include "entity_system.h"
 #include "geometry.h"
 #include "physics.h"
 #include "types.h"
@@ -12,6 +13,10 @@ Game::Game(i32 maxEntityCount) {
 
     geometry = new Geometry(maxEntityCount);
     physics = new Physics();
+    leaf = new Leaf();
+    entitySystem = new EntitySystem(leaf);
+    i32 id = entitySystem->createImmovableGround();
+    ids.push(id);
 }
 
 Game::~Game() {
@@ -36,12 +41,13 @@ void Game::changeScene(Example *newExample) {
         if (!e.isAlive)
             continue;
 
-        i32 treeId = geometry->dynamicTree->createBox(e.body.aabb, UserData(i));
+        i32 treeId = geometry->dynamicTree->createBox(e.body.aabb, TreeData(i));
         e.treeId = treeId;
     }
 }
 
 void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
+    leaf->step(dt);
     processInput(mInput);
     updateLogic(elapsed);
 
@@ -79,6 +85,8 @@ void Game::updateLogic(f32 elapsed) {
 
 void Game::processInput(MouseInput &mInput) {
     if (mInput.clicked(MouseButton::LEFT)) {
+        i32 id = entitySystem->createDynamicBox(glm::vec3(mInput.position.x, mInput.position.y, 0.0f));
+        ids.push(id);
         for (i32 i = 0; i < (i32) entities.size(); ++i) {
             Entity& e = entities[i];
             if (e.isAlive) {
@@ -86,8 +94,12 @@ void Game::processInput(MouseInput &mInput) {
             }
 
             e.activate(glm::vec3(mInput.position.x, mInput.position.y, 0.0f));
-            e.treeId = geometry->dynamicTree->createBox(e.body.aabb, UserData(i));
+            e.treeId = geometry->dynamicTree->createBox(e.body.aabb, TreeData(i));
             break;
         }
+    }
+    if (mInput.clicked(MouseButton::RIGHT)) {
+        entitySystem->destroyEntity(ids.top());
+        ids.pop();
     }
 }

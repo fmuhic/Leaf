@@ -68,6 +68,8 @@ int main() {
     game = new Game(ENTITY_COUNT);
     game->changeScene(new StackingExample());
 
+    leaf = new Leaf();
+
     MouseInput mInput;
 
     f64 previous = glfwGetTime();
@@ -79,6 +81,7 @@ int main() {
         processKeyboardInput(window);
         processMouseInput(window, mInput);
         game->update(elapsed, glfwGetTime(), mInput);
+        leaf->step(elapsed);
 
         renderer->draw(*scene, *game);
 
