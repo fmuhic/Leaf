@@ -8,9 +8,6 @@ EntitySystem::EntitySystem(Leaf *leaf) {
 i32 EntitySystem::createImmovableGround() {
     i32 id = entities.reserve();
     entities[id].isAlive = true;
-    // Entity e = entities[id];
-    // e = Entity();
-    // e.isAlive = true;
 
     UserData data = {};
     data.entityId = id;
@@ -28,9 +25,6 @@ i32 EntitySystem::createImmovableGround() {
 i32 EntitySystem::createDynamicBox(glm::vec3 position) {
     i32 id = entities.reserve();
     entities[id].isAlive = true;
-    // Entity e = entities[id];
-    // e = Entity();
-    // e.isAlive = true;
 
     UserData data = {};
     data.entityId = id;

@@ -41,7 +41,7 @@ void Game::changeScene(Example *newExample) {
         if (!e.isAlive)
             continue;
 
-        i32 treeId = geometry->dynamicTree->createBox(e.body.aabb, TreeData(i));
+        i32 treeId = geometry->dynamicTree->createBox(e.body.aabb, TreeData(i, -1));
         e.treeId = treeId;
     }
 }
@@ -94,7 +94,7 @@ void Game::processInput(MouseInput &mInput) {
             }
 
             e.activate(glm::vec3(mInput.position.x, mInput.position.y, 0.0f));
-            e.treeId = geometry->dynamicTree->createBox(e.body.aabb, TreeData(i));
+            e.treeId = geometry->dynamicTree->createBox(e.body.aabb, TreeData(i, -1));
             break;
         }
     }

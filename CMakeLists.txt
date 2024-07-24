@@ -15,6 +15,7 @@ add_executable(leaf
     src/main.cpp
     src/entity_system.cpp
     src/leaf_math.cpp
+    src/broad_phase.cpp
     src/dynamic_tree.cpp
     src/input.cpp
     src/body.cpp

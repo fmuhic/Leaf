@@ -1,8 +1,10 @@
 #include "leaf.h"
 #include "body.h"
+#include "broad_phase.h"
 
 Leaf::Leaf() {
     physics = new Physics();
+    broadPhase = new BroadPhase();
 }
 
 Leaf::~Leaf() {

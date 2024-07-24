@@ -1,6 +1,7 @@
 #pragma once
 
 #include "body.h"
+#include "broad_phase.h"
 #include "physics.h"
 #include "glm/fwd.hpp"
 #include "types.h"
@@ -21,7 +22,8 @@ class Leaf {
 
     const i32 boxVertexCount = 4;
 
-    Physics *physics;
+    BroadPhase* broadPhase;
+    Physics* physics;
 
     ObjectPool<RigidBody> bodies = ObjectPool<RigidBody>(2);
     ListPool<glm::vec3> vertices = ListPool<glm::vec3>(8);

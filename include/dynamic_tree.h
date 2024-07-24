@@ -12,10 +12,11 @@
 #define INIT_TREE_CAPACITY 4
 
 struct TreeData {
-    TreeData(i32 id): entityId(id) {}
-    TreeData(): TreeData(-1) {}
+    TreeData(i32 eId, i32 bId): entityId(eId), bodyId(bId) {}
+    TreeData(): TreeData(-1, -1) {}
 
     i32 entityId;
+    i32 bodyId;
 };
 
 struct Node {
@@ -45,6 +46,7 @@ struct DynamicTree {
     void removeBox(i32 boxId);
     bool moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement);
     void getAll(std::vector<std::pair<AABB, i32>>& boxes);
+    TreeData getData(i32 boxId);
     f32 quality();
     i32 height();
 

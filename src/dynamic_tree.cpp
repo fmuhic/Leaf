@@ -28,6 +28,12 @@ DynamicTree::DynamicTree() {
 DynamicTree::~DynamicTree() {
     delete [] nodes;
 }
+
+TreeData DynamicTree::getData(i32 boxId) {
+    assert(0 <= boxId && boxId < count);
+    return nodes[boxId].data;
+}
+
 void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
     candidates.clear();
     std::vector<i32> stack;
@@ -481,7 +487,7 @@ void DynamicTree::freeNode(i32 boxId) {
 	assert(count > 0);
 	nodes[boxId].next = freeList;
 	nodes[boxId].height = -1;
-    nodes[boxId].data = TreeData(-1);
+    nodes[boxId].data = TreeData();
 	freeList = boxId;
 	--count;
 }

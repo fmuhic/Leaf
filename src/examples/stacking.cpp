@@ -3,11 +3,11 @@
 void StackingExample::setup(std::vector<Entity>&entities) {
     createImmovableGround(entities);
 
-    i32 pilarCount = 5;
-    i32 height = 15;
-    glm::vec3 initPosition = glm::vec3(-8.0f, -6.8f, 0.0f);
-    for (i32 i = 0; i < pilarCount; i++)
-        createPilar(entities, initPosition + glm::vec3(i * 4.0f, 0.0f, 0.0f), height);
+    // i32 pilarCount = 5;
+    // i32 height = 15;
+    // glm::vec3 initPosition = glm::vec3(-8.0f, -6.8f, 0.0f);
+    // for (i32 i = 0; i < pilarCount; i++)
+    //     createPilar(entities, initPosition + glm::vec3(i * 4.0f, 0.0f, 0.0f), height);
 }
 
 

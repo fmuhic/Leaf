@@ -81,7 +81,6 @@ int main() {
         processKeyboardInput(window);
         processMouseInput(window, mInput);
         game->update(elapsed, glfwGetTime(), mInput);
-        leaf->step(elapsed);
 
         renderer->draw(*scene, *game);
 
