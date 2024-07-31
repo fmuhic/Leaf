@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "entity_system.h"
 #include "examples/slider.h"
 #include "renderer.h"
 #include "input.h"
@@ -65,10 +66,11 @@ int main() {
 
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    game = new Game(ENTITY_COUNT);
-    game->changeScene(new StackingExample());
+    Leaf* leaf = new Leaf;
+    EntitySystem* entitySystem = new EntitySystem(leaf);
 
-    leaf = new Leaf();
+    game = new Game(ENTITY_COUNT, leaf, entitySystem);
+    // game->changeScene(new StackingExample());
 
     MouseInput mInput;
 
@@ -82,7 +84,7 @@ int main() {
         processMouseInput(window, mInput);
         game->update(elapsed, glfwGetTime(), mInput);
 
-        renderer->draw(*scene, *game);
+        renderer->draw(*scene, *game, *entitySystem, *leaf);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -96,14 +98,14 @@ void processKeyboardInput(GLFWwindow *window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        game->changeScene(new StackingExample());
-
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        game->changeScene(new Thumbler());
-
-    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-        game->changeScene(new SliderExample());
+    // if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+    //     game->changeScene(new StackingExample());
+    //
+    // if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+    //     game->changeScene(new Thumbler());
+    //
+    // if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
+    //     game->changeScene(new SliderExample());
 }
 
 void processMouseInput(GLFWwindow *window, MouseInput &input) {

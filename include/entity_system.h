@@ -12,8 +12,9 @@ class EntitySystem {
     i32 createDynamicBox(glm::vec3 position);
     void destroyEntity(i32 id);
 
+    ObjectPool<Entity> entities;
+
     private:
     Leaf* leaf;
 
-    ObjectPool<Entity> entities;
 };

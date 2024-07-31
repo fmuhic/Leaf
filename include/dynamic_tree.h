@@ -2,6 +2,7 @@
 
 #include "body.h"
 #include "const.h"
+#include "dynamic_stack.h"
 #include "types.h"
 
 #include "glm/ext/vector_float3.hpp"
@@ -42,6 +43,7 @@ struct DynamicTree {
     ~DynamicTree();
 
     void checkIntersections(AABB& box, std::vector<i32>& candidates);
+    void checkIntersections(AABB& box, DynamicStack<i32>& candidates);
     i32 createBox(const AABB& box, TreeData data);
     void removeBox(i32 boxId);
     bool moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "entity_system.h"
 #include "types.h"
 #include "game.h"
 
@@ -30,7 +31,7 @@ struct Renderer {
     Renderer(f32 width, f32 height);
     ~Renderer();
 
-    void draw(Scene &scene, Game &game);
+    void draw(Scene &scene, Game &game, EntitySystem& entitySystem, Leaf& leaf);
 
     VideoEntity quad;
     VideoEntity wiredQuad;

@@ -12,7 +12,7 @@
 #include "examples/example.h"
 
 struct Game {
-    Game(i32 maxEntityCount);
+    Game(i32 maxEntityCount, Leaf* leaf, EntitySystem* entitySytem);
     ~Game();
 
     void update(f32 dt, f32 elapsed, MouseInput &mInput);

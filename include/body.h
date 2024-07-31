@@ -2,6 +2,7 @@
 
 #include <glm/ext/matrix_transform.hpp>
 
+#include "list_pool.h"
 #include "types.h"
 
 #define MAX_VERTEX_COUNT 4
@@ -61,6 +62,7 @@ struct RigidBody {
     void reset(glm::vec3 newPosition);
     void updateVelocity(f32 dt);
     void updatePosition(f32 dt);
+    void update(ListPool<glm::vec3>& vertices);
 
     GeometryType type ;
     AABB aabb;
@@ -86,10 +88,16 @@ struct RigidBody {
     f32 dynamicFriction;
     f32 restitution;
 
+    i32 treeId;
+    i32 collisionCandidates = -1;
     UserData data;
 
     private:
 
+    // Duplicates
     void transformToWorld();
     void updateAABB();
+
+    void transformToWorld(ListPool<glm::vec3>& vertices);
+    void updateAABB(ListPool<glm::vec3>& vertices);
 };

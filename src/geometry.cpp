@@ -1,7 +1,9 @@
 #include "geometry.h"
-#include "body.h"
+#include "glm/ext/vector_float3.hpp"
 #include "leaf_math.h"
+#include "list_pool.h"
 #include <algorithm>
+#include <map>
 
 #define BODY_A_ID 0
 #define BODY_B_ID 1
@@ -11,9 +13,10 @@ using std::vector;
 using std::fabs;
 using glm::vec3;
 
-Geometry::Geometry(i32 maxEntityCount) {
+Geometry::Geometry(i32 maxEntityCount, ListPool<glm::vec3>* vertices) {
     candidates.reserve(maxEntityCount);
     dynamicTree = new DynamicTree();
+    this->vertices = vertices;
 }
 
 void Geometry::reset() {
@@ -84,6 +87,48 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
         }
         else
             collisions.erase(candidate);
+    }
+}
+
+void Geometry::narrowPhase(std::map<CollisionKey, Collision>& candidates, ObjectPool<RigidBody>& bodies) {
+    for (auto &[key, collision]: candidates) {
+        RigidBody &a = bodies[key.first];
+        RigidBody &b = bodies[key.second];
+
+        Collision c;
+        if (a.type == GeometryType::BOX && b.type == GeometryType::BOX)
+            c = checkPlygonPolygon(a, b);
+        else
+            assert(false && "Circles not implemented for now");
+
+        if (c.colided) { 
+            // std::cout << "collided: (" << key.first << ", "<< key.second << ")\n";
+            // c.entities = candidate;
+            findContactPoints(a, b, c);
+            // ???
+            c.bodies = key;
+            c.entities = key;
+
+            if (!collision.colided) {
+                collision = c;
+            }
+            else {
+                collision.mergeContacts(c);
+            }
+
+            // collision = c;
+
+            // auto iter = collisions.find(candidate);
+            // if (iter == collisions.end())
+            //     collisions.insert(CollisionPair(candidate, c));
+            // else
+            //     iter->second.mergeContacts(c);
+        } else {
+            collision = c;
+            // collision.colided = false;
+            // collision.contacts[0] = Contact();
+            // collision.contacts[1] = Contact();
+        }
     }
 }
 
@@ -248,34 +293,4 @@ Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal)
         return Edge { EdgeId(v0Index, index), v, v0, v };
     else
         return Edge { EdgeId(index, v1Index), v, v, v1 };
-}
-
-void Collision::mergeContacts(Collision& c) {
-    normal = c.normal;
-    for (i32 i = 0; i < c.contactCount; i++) {
-        Contact &newContact = c.contacts[i];
-
-        for (i32 j = 0; j < contactCount; j++) {
-        Contact &oldContact = contacts[j];
-            if (newContact.id == oldContact.id) {
-                newContact.accNormalImpulse = oldContact.accNormalImpulse;
-                newContact.accTangentImpulse = oldContact.accTangentImpulse;
-                newContact.lifeDuration = ++oldContact.lifeDuration;
-                break;
-            }
-        }
-    }
-
-    contactCount = c.contactCount;
-    for (i32 i = 0; i < contactCount; i++)
-        contacts[i] = c.contacts[i];
-}
-
-void Collision::addContactPoint(Contact c) {
-    contacts[contactCount] = c;
-    contactCount++;
-};
-
-bool Contact::isStable() {
-    return lifeDuration > STABLE_CONTACT_MIN_FRAMES;
 }

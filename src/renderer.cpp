@@ -12,6 +12,7 @@
 #include "body.h"
 #include "renderer.h"
 #include "const.h"
+#include "helpers.h"
 #include "loader.h"
 
 using std::string;
@@ -244,7 +245,7 @@ void Renderer::drawWiredEntity(f32 program, VideoEntity &e, Scene &scene, glm::m
     glDrawElements(GL_LINES, e.indiceCount, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::draw(Scene &scene, Game &game) {
+void Renderer::draw(Scene &scene,[[maybe_unused]] Game &game, EntitySystem& entitySystem, Leaf& leaf) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -265,17 +266,31 @@ void Renderer::draw(Scene &scene, Game &game) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
     glBindBuffer(GL_ARRAY_BUFFER, quad.vbo);
     glBindVertexArray(quad.vao);
-    for (auto &e: game.entities) {
+
+    for (i32 i = entitySystem.entities.getFirst(); i != ObjectPool<Entity>::END; i = entitySystem.entities.next(i)) {
+        Entity e = entitySystem.entities[i];
         if (e.isAlive && e.body.type == GeometryType::BOX) {
-            drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
+            drawEntity(shaderProgram, quad, scene, leaf.getBody(e.bodyId)->model, e.color);
         }
     }
+
+    for (auto& [_, c]: leaf.candidatesPool) {
+        if (!c.colided) continue;
+        for (i32 i = 0; i < c.contactCount; i++) {
+            glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, c.contacts[i].point);
+            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
+            drawEntity(shaderProgram, quad, scene, model, contactColor);
+        }
+    }
+
 
     glBindVertexArray(wiredQuad.vao);
     glBindBuffer(GL_ARRAY_BUFFER, wiredQuad.vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
     std::vector<std::pair<AABB, i32>> boxes;
-    game.geometry->dynamicTree->getAll(boxes);
+    leaf.debugTree(boxes);
     std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
         return a.second > b.second;
     });
@@ -293,25 +308,6 @@ void Renderer::draw(Scene &scene, Game &game) {
         );
         drawWiredEntity(shaderProgram, wiredQuad, scene, model, SECONDARY_COLORS[height % SECONDARY_COLORS.size()]);
     }
-
-    // for (auto &e: game.entities) {
-    //     if (e.isAlive && e.body.type == GeometryType::BOX) {
-    //         drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
-    //     }
-    // }
-
-    // for (auto& [_, c]: game.geometry->collisions) {
-    //     for (i32 i = 0; i < c.contactCount; i++) {
-    //         if(c.contacts[i].isStable())
-    //             continue;
-    //
-    //         glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
-    //         glm::mat4 model = glm::mat4(1.0f);
-    //         model = glm::translate(model, c.contacts[i].point);
-    //         model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
-    //         drawEntity(shaderProgram, quad, scene, model, contactColor);
-    //     }
-    // }
 
     // // Render Circle Entities
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);

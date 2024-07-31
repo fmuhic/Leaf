@@ -22,6 +22,31 @@ void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, v
     }
 }
 
+void Physics::resolveCollisions(std::map<CollisionKey, Collision>& candidates, ObjectPool<RigidBody>& bodies, f32 dtInv) {
+    for (auto& [key, c]: candidates) {
+        if (!c.colided) continue;
+
+        std::cout << "collided: (" << key.first << ", "<< key.second << ")\n";
+
+        RigidBody& a = bodies[key.first];
+        RigidBody& b = bodies[key.second];
+
+        prepareContacts(c, a, b, dtInv);
+    }
+
+    for (i32 i = 0; i < correctionCount; i++) {
+        for (auto& [key, c]: candidates) {
+            if (!c.colided) continue;
+
+            RigidBody& a = bodies[key.first];
+            RigidBody& b = bodies[key.second];
+
+            applyTangentImpulse(c, a, b);
+            applyNormalImpulse(c, a, b);
+        }
+    }
+}
+
 void Physics::applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b) {
     for (i32 i = 0; i < collision.contactCount; i++) {
         Contact& contact = collision.contacts[i];

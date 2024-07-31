@@ -1,4 +1,8 @@
 #include "body.h"
+#include "glm/ext/vector_float3.hpp"
+#include "helpers.h"
+#include "list_pool.h"
+#include <iostream>
 
 AABB AABB::fatten(const f32 amount) const {
     glm::vec3 d = glm::vec3(amount, amount, 0.0f);
@@ -189,6 +193,69 @@ void RigidBody::updateAABB() {
         case GeometryType::CIRCLE: {
             aabb.topRight = position + vertices[0];
             aabb.bottomLeft = position - vertices[0];
+        } break;
+    }
+}
+
+void RigidBody::update(ListPool<glm::vec3>& vertices) {
+    transformToWorld(vertices);
+    updateAABB(vertices);
+}
+
+void RigidBody::transformToWorld(ListPool<glm::vec3>& vertices) {
+    model = glm::mat4(1.0f);
+    model = glm::translate(model, position);
+    model = glm::rotate(model, orientation, glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::scale(model, glm::vec3(scale.x, scale.y, scale.z));
+
+    glm::vec4 baseBoxVertices[] = {
+        glm::vec4(0.5f, 0.5f, 0.0f, 1.0f),
+        glm::vec4(0.5f, -0.5f, 0.0f, 1.0f),
+        glm::vec4(-0.5f, -0.5f, 0.0f, 1.0f),
+        glm::vec4(-0.5f, 0.5f, 0.0f, 1.0f)
+    };
+
+    i32 baseVertexId = 0;
+    for (i32 i = verticesId; i != ListPool<glm::vec3>::END; i = vertices.next(i)) {
+        switch (type) {
+            case GeometryType::BOX: {
+                assert(0 <= baseVertexId && baseVertexId < vertexCount);
+                vertices[i] = model * baseBoxVertices[baseVertexId];
+            } break;
+
+            case GeometryType::CIRCLE: {
+                assert(0 <= baseVertexId && baseVertexId < vertexCount);
+                vertices[i] = model * glm::vec4(0.5f, 0.5f, 0.0f, 1.0f);
+            } break;
+        }
+        ++baseVertexId;
+    }
+}
+
+void RigidBody::updateAABB(ListPool<glm::vec3>& vertices) {
+    switch (type) {
+        case GeometryType::BOX: {
+            // Use FLT_MIN/MAX here
+            f32 xMin = vertices[verticesId].x;
+            f32 xMax = vertices[verticesId].x;
+            f32 yMin = vertices[verticesId].y;
+            f32 yMax = vertices[verticesId].y;
+
+            for (i32 i = verticesId; i != ListPool<glm::vec3>::END; i = vertices.next(i)) {
+                glm::vec3 v = vertices[i];
+                if (v.x < xMin) xMin = v.x;
+                if (v.x > xMax) xMax = v.x;
+                if (v.y < yMin) yMin = v.y;
+                if (v.y > yMax) yMax = v.y;
+            }
+
+            aabb.bottomLeft = glm::vec3(xMin, yMin, 0.0f);
+            aabb.topRight = glm::vec3(xMax, yMax, 0.0f);
+        } break;
+
+        case GeometryType::CIRCLE: {
+            aabb.topRight = position + vertices[verticesId];
+            aabb.bottomLeft = position - vertices[verticesId];
         } break;
     }
 }

@@ -57,6 +57,30 @@ void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
 
 }
 
+void DynamicTree::checkIntersections(AABB& box, DynamicStack<i32>& candidates) {
+    candidates.clear();
+    // replace with proper traversal stack
+    std::vector<i32> stack;
+    stack.push_back(root);
+
+    while (!stack.empty()) {
+        i32 index = stack.back();
+        Node& node = nodes[index];
+        stack.pop_back();
+
+        if (!box.overlaps(node.box))
+            continue;
+
+        if (node.isLeaf()) {
+            candidates.push(nodes[index].data.bodyId);
+        } else {
+            stack.push_back(node.leftChild);
+            stack.push_back(node.rightChild);
+        }
+    }
+
+}
+
 i32 DynamicTree::createBox(const AABB &box, TreeData data) {
     i32 boxId = createNode();
     nodes[boxId].box = box.fatten(fattenAmount);

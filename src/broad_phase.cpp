@@ -37,3 +37,11 @@ void BroadPhase::update(DynamicStack<i32>& movedBodies) {
         movedBodies.push(data.bodyId);
     }
 }
+
+void BroadPhase::query(AABB& box, DynamicStack<i32>& candidates) {
+    tree->checkIntersections(box, candidates);
+}
+
+void BroadPhase::debugTree(std::vector<std::pair<AABB, i32>>& boxes) {
+    tree->getAll(boxes);
+}

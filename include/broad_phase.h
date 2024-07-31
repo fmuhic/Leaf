@@ -12,6 +12,9 @@ class BroadPhase {
     void removeBox(i32 boxId);
     void moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement);
     void update(DynamicStack<i32>& movedBodies);
+    void query(AABB& box, DynamicStack<i32>& candidates);
+
+    void debugTree(std::vector<std::pair<AABB, i32>>& boxes);
 
     private:
     DynamicTree *tree;

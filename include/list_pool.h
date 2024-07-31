@@ -27,6 +27,8 @@ class ListPool {
         assert(prev != END);
         return nodes[prev].next;
     }
+    // O(n) for now
+    void removeElement(i32 listId, T elem);
 
     T& operator [] (i32 index) {
         assert(index >= 0 && index < capacity);

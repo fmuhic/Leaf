@@ -13,7 +13,7 @@ class DynamicStack {
 
     T pop();
     void push(T);
-    inline void reset() { size = 0; }
+    inline void clear() { size = 0; }
     inline i32 getSize() { return size; }
     inline bool isEmpty() { return size == 0; }
     // Remove this once set is implemented
@@ -61,7 +61,7 @@ bool DynamicStack<T>::contains(T value) {
 
 template <typename T>
 void DynamicStack<T>::push(T value) {
-    if (size > capacity) {
+    if (size >= capacity) {
         expandElements();
     }
     elements[size++] = value;

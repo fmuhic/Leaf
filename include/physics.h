@@ -6,9 +6,11 @@
 #include "leaf_math.h"
 #include "body.h"
 #include "geometry.h"
+#include "object_pool.h"
 
 struct Physics {
     void resolveCollisions(std::map<CollisionKey, Collision>& collisions, std::vector<Entity>& entities, f32 dtInv);
+    void resolveCollisions(std::map<CollisionKey, Collision>& candidates, ObjectPool<RigidBody>& bodies, f32 dtInv);
 
     private:
 
@@ -17,7 +19,7 @@ struct Physics {
     void applyTangentImpulse(Collision& collision, RigidBody& a, RigidBody& b);
 
     // revert this
-    i32 correctionCount = 50;
+    i32 correctionCount = 10;
     f32 positionCorrectionFactor = 0.2f;
     f32 allowedPenetration = 0.01f;
 };

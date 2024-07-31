@@ -30,7 +30,7 @@ i32 EntitySystem::createDynamicBox(glm::vec3 position) {
     data.entityId = id;
     BodyConfig config = {};
     config.position = position;
-    config.scale = glm::vec3(25.0f, 1.0f, 1.0f);
+    config.scale = glm::vec3(1.0f, 1.0f, 1.0f);
 
     entities[id].bodyId = leaf->createBox(config, data);
     entities.debug("Entities Add");
