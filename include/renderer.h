@@ -33,6 +33,7 @@ struct Renderer {
     void draw(Scene &scene, Game &game);
 
     VideoEntity quad;
+    VideoEntity wiredQuad;
     VideoEntity circle;
     f32 screenWidth;
     f32 screenHeight;
@@ -41,7 +42,9 @@ struct Renderer {
     private:
 
     void drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color);
+    void drawWiredEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color);
     void createRectangleEntity(ui32 program);
+    void createWiredRectangleEntity(ui32 program);
     void createCircleEntity(ui32 program, f32 radius, i32 pointCount);
     glm::vec3 pickContactColor(i32 contactLifeDuration);
 

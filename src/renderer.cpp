@@ -1,6 +1,7 @@
 #include <string>
 #include <assert.h>
 #include <iostream>
+#include <algorithm>
 #include <glad/glad.h>
 #include <glm/mat4x4.hpp>
 #include <glm/ext/matrix_transform.hpp>
@@ -8,6 +9,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "body.h"
+#include "const.h"
 #include "helpers.h"
 #include "renderer.h"
 #include "loader.h"
@@ -66,6 +68,7 @@ Renderer::Renderer(f32 width, f32 height) {
 
     createCircleEntity(program, 0.5f, 32);
     createRectangleEntity(program);
+    createWiredRectangleEntity(program);
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);
@@ -168,6 +171,63 @@ void Renderer::createRectangleEntity(ui32 program) {
     quad.ebo = EBO;
 }
 
+void Renderer::createWiredRectangleEntity(ui32 program) {
+    const ui32 vertexCount = 12;
+    wiredQuad.vertices = new f32[vertexCount] {
+         0.5f,  0.5f, 0.0f,
+         0.5f, -0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f,
+        -0.5f,  0.5f, 0.0f
+    };
+
+    wiredQuad.indiceCount = 8;
+    wiredQuad.indices = new ui32[wiredQuad.indiceCount] {
+        0, 1, 1, 2, 2, 3, 3, 0
+    };
+
+    wiredQuad.shaderProgram = program;
+
+    ui32 VBO, VAO, EBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
+ 
+    glBindVertexArray(VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(f32), wiredQuad.vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.indiceCount * sizeof(ui32), wiredQuad.indices, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), (void *) 0);
+    glEnableVertexAttribArray(0);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    wiredQuad.vao = VAO;
+    wiredQuad.vbo = VBO;
+    wiredQuad.ebo = EBO;
+}
+
+void Renderer::drawWiredEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color) {
+    GLint modelLocation = glGetUniformLocation(program, "model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+
+    GLint viewLocation = glGetUniformLocation(program, "view");
+    glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(scene.camera));
+
+    GLint projectionLocation = glGetUniformLocation(program, "projection");
+    glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(scene.projection));
+
+    GLint vertexColorLocation = glGetUniformLocation(program, "vertexColor");
+    glUniform4f(vertexColorLocation, color.x, color.y, color.z, 1.0f);
+
+    glDrawElements(GL_LINES, e.indiceCount, GL_UNSIGNED_INT, 0);
+}
+
 void Renderer::drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &model, glm::vec3 &color) {
     GLint modelLocation = glGetUniformLocation(program, "model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
@@ -214,18 +274,43 @@ void Renderer::draw(Scene &scene, Game &game) {
         }
     }
 
-    // for (auto& [_, c]: game.geometry->collisions) {
-    //     for (i32 i = 0; i < c.contactCount; i++) {
-    //         if(c.contacts[i].isStable())
-    //             continue;
-    //
-    //         glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
-    //         glm::mat4 model = glm::mat4(1.0f);
-    //         model = glm::translate(model, c.contacts[i].point);
-    //         model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
-    //         drawEntity(shaderProgram, quad, scene, model, contactColor);
-    //     }
-    // }
+    for (auto& [_, c]: game.candidatesPool) {
+        if (!c.colided) continue;
+        for (i32 i = 0; i < c.contactCount; i++) {
+            if(c.contacts[i].isStable())
+                continue;
+
+            glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, c.contacts[i].point);
+            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
+            drawEntity(shaderProgram, quad, scene, model, contactColor);
+        }
+    }
+
+    glBindVertexArray(wiredQuad.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, wiredQuad.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
+    std::vector<std::pair<AABB, i32>> boxes;
+    game.debugTree(boxes);
+    std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
+        return a.second > b.second;
+    });
+    for (auto &[box, height]: boxes) {
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec3 p = box.bottomLeft + (box.topRight - box.bottomLeft) * 0.5f;
+        model = glm::translate(model, p);
+        model = glm::scale(
+            model,
+            glm::vec3(
+                box.topRight.x - box.bottomLeft.x,
+                box.topRight.y - box.bottomLeft.y,
+                1.0f
+            )
+        );
+        drawWiredEntity(shaderProgram, wiredQuad, scene, model, COLORS[height % COLORS.size()]);
+    }
+
 
     // // Render Circle Entities
     // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, r->circle.ebo);

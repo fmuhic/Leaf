@@ -14,8 +14,10 @@ project(leaf VERSION 1.0)
 add_executable(leaf
     src/main.cpp
     src/leaf_math.cpp
+    src/dynamic_tree.cpp
     src/input.cpp
     src/body.cpp
+    src/broad_phase.cpp
     src/geometry.cpp
     src/const.cpp
     src/loader.cpp

@@ -4,17 +4,19 @@
 using std::vector;
 
 void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, vector<Entity>& entities, f32 dtInv) {
-    for (auto& [_, c]: collisions) {
-        Entity &a = entities.at(c.entities.first);
-        Entity &b = entities.at(c.entities.second);
+    for (auto& [key, c]: collisions) {
+        if (!c.colided) continue;
+        Entity &a = entities.at(key.first);
+        Entity &b = entities.at(key.second);
 
         prepareContacts(c, a.body, b.body, dtInv);
     }
 
     for (i32 i = 0; i < correctionCount; i++) {
-        for (auto& [_, c]: collisions) {
-            Entity &a = entities.at(c.entities.first);
-            Entity &b = entities.at(c.entities.second);
+        for (auto& [key, c]: collisions) {
+            if (!c.colided) continue;
+            Entity &a = entities.at(key.first);
+            Entity &b = entities.at(key.second);
 
             applyTangentImpulse(c, a.body, b.body);
             applyNormalImpulse(c, a.body, b.body);

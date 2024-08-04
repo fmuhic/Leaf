@@ -7,6 +7,15 @@
 #define MAX_VERTEX_COUNT 4
 
 struct AABB {
+    AABB() {};
+    AABB(glm::vec3 bottom, glm::vec3 top): bottomLeft(bottom), topRight(top) {}
+
+    AABB fatten(const f32 amount) const;
+    AABB merge(const AABB& other) const;
+    bool contains(AABB& other) const;
+    bool overlaps(AABB& other) const;
+    f32 perimiter() const;
+
     glm::vec3 bottomLeft;
     glm::vec3 topRight;
 };
@@ -43,6 +52,7 @@ struct RigidBody {
     glm::vec3 acceleration = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 linearVelocity = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::vec3 position;
+    glm::vec3 oldPosition;
 
     f32 angularVelocity = 0.0f;
     f32 orientation = 0.0f;

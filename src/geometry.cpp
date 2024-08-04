@@ -1,5 +1,6 @@
 #include "geometry.h"
 #include "body.h"
+#include "dynamic_tree.h"
 #include "helpers.h"
 #include "leaf_math.h"
 
@@ -11,8 +12,9 @@ using std::vector;
 using std::fabs;
 using glm::vec3;
 
-Geometry::Geometry(i32 maxEntityCount) {
+Geometry::Geometry(DynamicTree* dynamicTree, i32 maxEntityCount) {
     candidates.reserve(maxEntityCount);
+    tree = dynamicTree;
 }
 
 void Geometry::reset() {
@@ -22,31 +24,40 @@ void Geometry::reset() {
 
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
+    std::vector<i32> temp;
 
     // Todo(Fudo): Switch to spatial partitioning
-    for (ui32 i = 0; i < entities.size() - 1; ++i) {
+    for (i32 i = 0; i < (i32) entities.size() - 1; ++i) {
         Entity &a = entities.at(i);
+        if (!a.isAlive) continue;
 
-        for (ui32 j = i + 1; j < entities.size(); ++j) {
-            Entity &b = entities.at(j);
-
-            if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
-                continue;
-
-            if (!b.isAlive || !a.isAlive || !aabbIntersect(a.body.aabb, b.body.aabb)) {
-                collisions.erase(CollisionKey(i, j));
-                continue;
-            }
-
-            candidates.push_back(CollisionKey(i, j));
+        temp.clear();
+        tree->checkIntersections(a.body.aabb, temp);
+        for (i32 bId: temp) {
+            if (bId > i)
+                candidates.push_back(CollisionKey(i, bId));
         }
+
+        // for (ui32 j = i + 1; j < entities.size(); ++j) {
+        //     Entity &b = entities.at(j);
+        //
+        //     if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
+        //         continue;
+        //
+        //     if (!b.isAlive || !a.isAlive || !aabbIntersect(a.body.aabb, b.body.aabb)) {
+        //         collisions.erase(CollisionKey(i, j));
+        //         continue;
+        //     }
+        //
+        //     candidates.push_back(CollisionKey(i, j));
+        // }
     }
 }
 
-void Geometry::narrowPhase(std::vector<Entity>& entities) {
-    for (auto &candidate: candidates) {
-        Entity &a = entities.at(candidate.first);
-        Entity &b = entities.at(candidate.second);
+void Geometry::narrowPhase(std::vector<Entity>& entities, std::map<CollisionKey, Collision>& candidatesPool) {
+    for (auto &[key, oldCollision]: candidatesPool) {
+        Entity &a = entities.at(key.first);
+        Entity &b = entities.at(key.second);
 
         Collision c;
         if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
@@ -54,19 +65,53 @@ void Geometry::narrowPhase(std::vector<Entity>& entities) {
         else
             assert(false && "Circles not implemented for now");
 
-        if (c.colided) { 
-            c.entities = candidate;
+        if (c.colided) {
             findContactPoints(a.body, b.body, c);
-
-            auto iter = collisions.find(candidate);
-            if (iter == collisions.end())
-                collisions.insert(CollisionPair(candidate, c));
-            else
-                iter->second.mergeContacts(c);
+            if (oldCollision.colided) {
+                oldCollision.mergeContacts(c);
+            }
+            else {
+                oldCollision = c;
+            }
+        } else {
+            oldCollision = Collision();
         }
-        else
-            collisions.erase(candidate);
+        // if (c.colided) { 
+        //     c.entities = candidate;
+        //     findContactPoints(a.body, b.body, c);
+        //
+        //     auto iter = collisions.find(candidate);
+        //     if (iter == collisions.end())
+        //         collisions.insert(CollisionPair(candidate, c));
+        //     else
+        //         iter->second.mergeContacts(c);
+        // }
+        // else
+        //     collisions.erase(candidate);
     }
+    // for (auto &candidate: candidates) {
+    //     Entity &a = entities.at(candidate.first);
+    //     Entity &b = entities.at(candidate.second);
+    //
+    //     Collision c;
+    //     if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
+    //         c = checkPlygonPolygon(a.body, b.body);
+    //     else
+    //         assert(false && "Circles not implemented for now");
+    //
+    //     if (c.colided) { 
+    //         c.entities = candidate;
+    //         findContactPoints(a.body, b.body, c);
+    //
+    //         auto iter = collisions.find(candidate);
+    //         if (iter == collisions.end())
+    //             collisions.insert(CollisionPair(candidate, c));
+    //         else
+    //             iter->second.mergeContacts(c);
+    //     }
+    //     else
+    //         collisions.erase(candidate);
+    // }
 }
 
 bool Geometry::aabbIntersect(AABB& a, AABB& b) {
@@ -249,6 +294,7 @@ void Collision::mergeContacts(Collision& c) {
     }
 
     contactCount = c.contactCount;
+    colided = c.colided;
     for (i32 i = 0; i < contactCount; i++)
         contacts[i] = c.contacts[i];
 }

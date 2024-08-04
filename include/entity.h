@@ -6,9 +6,12 @@
 #include "helpers.h"
 
 struct Entity {
-    void despawnIfOutOfBounds() {
-        if (body.position.x < -50.0f || body.position.y < -50.0f)
+    bool despawnIfOutOfBounds() {
+        if (body.position.x < -50.0f || body.position.y < -50.0f) {
             destroy();
+            return true;
+        }
+        return false;
     }
 
     void destroy() {
@@ -22,5 +25,6 @@ struct Entity {
 
     bool isAlive = false;
     RigidBody body;
+    i32 treeId = -1;
     glm::vec3 color = COLORS[pickRand(0, COLORS.size() - 1)];
 };

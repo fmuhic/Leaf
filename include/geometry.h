@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 
+#include "dynamic_tree.h"
 #include "types.h"
 #include "const.h"
 #include "entity.h"
@@ -66,10 +67,10 @@ typedef std::pair<i32, i32> CollisionKey;
 typedef std::pair<CollisionKey, Collision> CollisionPair;
 
 struct Geometry {
-    Geometry(i32 maxEntityCount);
+    Geometry(DynamicTree* tree, i32 maxEntityCount);
 
     void broadPhase(std::vector<Entity>& entities);
-    void narrowPhase(std::vector<Entity>& entities);
+    void narrowPhase(std::vector<Entity>& entities, std::map<CollisionKey, Collision>& candidatesPool);
     void reset();
 
     std::map<CollisionKey, Collision> collisions;
@@ -84,6 +85,8 @@ struct Geometry {
     EdgePoints clipEdge(glm::vec3& first, glm::vec3& second, glm::vec3 referenceEdge, f32 referenceOffset);
 
     std::vector<std::pair<i32, i32>> candidates; 
+    std::vector<std::pair<i32, i32>> cnds; 
 
     f32 edgePreferenceDelta = 0.005f;
+    DynamicTree* tree;
 };
