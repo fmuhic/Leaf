@@ -4,6 +4,7 @@
 #include "geometry.h"
 #include "physics.h"
 #include "types.h"
+#include <algorithm>
 
 Game::Game(i32 maxEntityCount) {
     tree = new DynamicTree();
@@ -13,7 +14,7 @@ Game::Game(i32 maxEntityCount) {
 
     entities.reserve(maxEntityCount);
     for (i32 i = 0; i < maxEntityCount; ++i)
-        entities.push_back(Entity{});
+        entities.push_back(Entity());
 }
 
 Game::~Game() {
@@ -25,7 +26,10 @@ Game::~Game() {
 void Game::reset() {
     geometry->reset();
     for (auto &e: entities) {
-        if (!e.isAlive) continue;
+        if (!e.isAlive) {
+            assert(e.treeId == -1);
+            continue;
+        }
         e.destroy();
         broadPhase->removeBox(e.treeId);
         e.treeId = -1;
@@ -57,7 +61,7 @@ void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
 
         e.body.updateVelocity(dt);
         if (e.despawnIfOutOfBounds()) {
-            tree->removeBox(e.treeId);
+            broadPhase->removeBox(e.treeId);
             e.treeId = -1;
         }
     }
@@ -80,7 +84,7 @@ void Game::update(f32 dt, f32 elapsed, MouseInput &mInput) {
 }
 
 void Game::updateLogic([[maybe_unused]]f32 elapsed) {
-    // example->update(entities, elapsed);
+    example->update(entities, elapsed);
 }
 
 void Game::processInput(MouseInput &mInput) {
@@ -104,14 +108,12 @@ void Game::updateCandidates() {
     for (i32 aId: moves) {
         Entity& a = entities[aId];
         tempStack.clear();
-        broadPhase->query(a.body.aabb, tempStack);
+        broadPhase->query(a.treeId, tempStack);
 
         // Clear all candidates containint A's id
         for (auto it = candidatesPool.cbegin(); it != candidatesPool.cend();) {
-            if (it->first.first == aId || it->first.second == aId) {
-                std::cout << " Removing Key (" << it->first.first << ", " << it->first.second << ")\n";
+            if (it->first.first == aId || it->first.second == aId)
                 candidatesPool.erase(it++);
-            }
             else
                 ++it;
         }

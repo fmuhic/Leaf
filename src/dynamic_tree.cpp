@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstring>
+#include <iostream>
 #include "dynamic_tree.h"
 #include "leaf_math.h"
 
@@ -30,8 +31,13 @@ DynamicTree::~DynamicTree() {
 }
 
 TreeData DynamicTree::getData(i32 boxId) {
-    assert(0 <= boxId && boxId < count);
+    assert(0 <= boxId && boxId < capacity);
     return nodes[boxId].data;
+}
+
+AABB DynamicTree::getBox(i32 boxId) {
+    assert(0 <= boxId && boxId < capacity);
+    return nodes[boxId].box;
 }
 
 void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
@@ -54,7 +60,6 @@ void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
             stack.push_back(node.rightChild);
         }
     }
-
 }
 
 i32 DynamicTree::createBox(const AABB &box, TreeData data) {
@@ -73,7 +78,7 @@ void DynamicTree::removeBox(i32 boxId) {
 
 bool DynamicTree::moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement) {
     assert(boxId >= 0 && boxId < capacity);
-	// assert(nodes[boxId].isLeaf());
+	assert(nodes[boxId].isLeaf());
 
 	AABB fatBox = newBox.fatten(fattenAmount);
 

@@ -6,6 +6,7 @@
 #include "helpers.h"
 
 struct Entity {
+    Entity() {}
     bool despawnIfOutOfBounds() {
         if (body.position.x < -50.0f || body.position.y < -50.0f) {
             destroy();

@@ -22,6 +22,7 @@ void Geometry::reset() {
     collisions.clear();
 }
 
+// No longer used
 void Geometry::broadPhase(vector<Entity>& entities) {
     candidates.clear();
     std::vector<i32> temp;
@@ -67,13 +68,9 @@ void Geometry::narrowPhase(std::vector<Entity>& entities, std::map<CollisionKey,
 
         if (c.colided) {
             findContactPoints(a.body, b.body, c);
-            if (oldCollision.colided) {
-                oldCollision.mergeContacts(c);
-            }
-            else {
-                oldCollision = c;
-            }
-        } else {
+            oldCollision.mergeContacts(c);
+        }
+        else {
             oldCollision = Collision();
         }
         // if (c.colided) { 
