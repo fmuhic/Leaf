@@ -1,8 +1,4 @@
 #include "leaf_math.h"
-#include "helpers.h"
-#include <cfloat>
-#include <iostream>
-#include <math.h>
 
 i32 modFloor(i32 num, i32 max) {
     return ((num % max) + max) % max;
@@ -38,6 +34,14 @@ bool closeTo(glm::vec3 &a, glm::vec3 &b, f32 delta) {
     return closeTo(a.x, b.x, delta) && closeTo(a.y, b.y, delta);
 }
 
+f32 min(i32 a, i32 b) {
+    return a < b ? a : b;
+}
+
+f32 max(i32 a, i32 b) {
+    return a > b ? a : b;
+}
+
 f32 min(f32 a, f32 b) {
     return a < b ? a : b;
 }
@@ -49,7 +53,6 @@ f32 max(f32 a, f32 b) {
 f32 clamp(f32 val, f32 low, f32 high) {
 	return max(low, min(val, high));
 }
-
 
 f32 pointLineDistance(glm::vec3 &p, glm::vec3 &a, glm::vec3 &b) {
     glm::vec3 ab = normalize(b - a);

@@ -13,19 +13,22 @@ project(leaf VERSION 1.0)
 
 add_executable(leaf
     src/main.cpp
+    src/leaf.cpp
     src/leaf_math.cpp
     src/dynamic_tree.cpp
+    src/aabb.cpp
+    src/entity_system.cpp
     src/input.cpp
     src/body.cpp
     src/broad_phase.cpp
-    src/geometry.cpp
+    src/narrow_phase.cpp
+    src/collision.cpp
     src/const.cpp
     src/loader.cpp
     src/renderer.cpp
     src/physics.cpp
     src/game.cpp
     src/helpers.cpp
-    src/examples/example.cpp
     src/examples/thumbler.cpp
     src/examples/stacking.cpp
     src/examples/slider.cpp

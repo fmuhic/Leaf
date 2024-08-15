@@ -1,7 +1,6 @@
+#include "dynamic_tree.h"
 #include <cassert>
 #include <cstring>
-#include <iostream>
-#include "dynamic_tree.h"
 #include "leaf_math.h"
 
 enum class TreeRotation {
@@ -54,7 +53,7 @@ void DynamicTree::checkIntersections(AABB& box, std::vector<i32>& candidates) {
             continue;
 
         if (node.isLeaf()) {
-            candidates.push_back(nodes[index].data.entityId);
+            candidates.push_back(nodes[index].data.bodyId);
         } else {
             stack.push_back(node.leftChild);
             stack.push_back(node.rightChild);
@@ -97,18 +96,11 @@ bool DynamicTree::moveBox(i32 boxId, AABB& newBox, glm::vec3 displacement) {
 
 	AABB& treeBox = nodes[boxId].box;
 	if (treeBox.contains(newBox)) {
-		// The tree AABB still contains the object, but it might be too large.
-		// Perhaps the object was moving fast but has since gone to sleep.
-		// The huge AABB is larger than the new fat AABB.
 		AABB hugeBox = fatBox.fatten(4.0f * fattenAmount);
-
 		if (hugeBox.contains(treeBox)) {
-			// The tree AABB contains the object AABB and the tree AABB is
-			// not too large. No tree update needed.
 			return false;
 		}
-
-		// Otherwise the tree AABB is huge and needs to be shrunk
+		// AABB is too big and need to shrink
 	}
 
 	removeLeaf(boxId);

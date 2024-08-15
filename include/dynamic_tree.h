@@ -1,7 +1,6 @@
 #pragma once
 
-#include "body.h"
-#include "const.h"
+#include "aabb.h"
 #include "types.h"
 
 #include "glm/ext/vector_float3.hpp"
@@ -13,10 +12,9 @@
 #define UNITS_PER_METER 1.0f
 
 struct TreeData {
-    TreeData(i32 eId, i32 bId): entityId(eId), bodyId(bId) {}
-    TreeData(): TreeData(-1, -1) {}
+    TreeData(i32 bId): bodyId(bId) {}
+    TreeData(): TreeData(-1) {}
 
-    i32 entityId;
     i32 bodyId;
 };
 

@@ -4,18 +4,17 @@
 #include <GLFW/glfw3.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "examples/slider.h"
-#include "geometry.h"
-#include "helpers.h"
 #include "renderer.h"
 #include "input.h"
+#include "config.h"
 #include "game.h"
+#include "examples/slider.h"
 #include "examples/thumbler.h"
 #include "examples/stacking.h"
 
 void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-void processKeyboardInput(GLFWwindow *window);
-void processMouseInput(GLFWwindow *window, MouseInput &input);
+void processKeyboardInput(GLFWwindow *window, Input &input);
+void processMouseInput(GLFWwindow *window, Input &input);
 glm::vec3 screenToWorld(glm::vec3 p, Scene *scene, f32 width, f32 height);
 
 #define SCREEN_WIDTH 1280
@@ -28,8 +27,11 @@ using std::endl;
 using glm::vec3;
 
 Renderer* renderer;
+EntitySystem* entitySystem;
+Leaf* leaf;
 Scene* scene;
 Game *game;
+DebugConfig *debugConfig;
 
 int main() {
     glfwInit();
@@ -51,6 +53,8 @@ int main() {
         return -1;
     }
 
+    debugConfig = new DebugConfig();
+
     renderer = new Renderer(
         (f32) SCREEN_WIDTH,
         (f32) SCREEN_HEIGHT
@@ -65,10 +69,12 @@ int main() {
 
     framebufferSizeCallback(window, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-    game = new Game(ENTITY_COUNT);
-    game->changeScene(new StackingExample());
+    leaf = new Leaf();
+    entitySystem = new EntitySystem(leaf);
+    game = new Game(leaf, entitySystem);
+    game->changeScene(new StackingExample(entitySystem));
 
-    MouseInput mInput;
+    Input input;
 
     f64 previous = glfwGetTime();
     f64 lag = 0.0;
@@ -79,13 +85,13 @@ int main() {
         previous = current;
 
         while (lag > GAME_UPDATE_INTERVAL_SEC) {
-            processKeyboardInput(window);
-            processMouseInput(window, mInput);
-            game->update(GAME_UPDATE_INTERVAL_SEC, glfwGetTime(), mInput);
+            processKeyboardInput(window, input);
+            processMouseInput(window, input);
+            game->update(GAME_UPDATE_INTERVAL_SEC, glfwGetTime(), input);
             lag -= GAME_UPDATE_INTERVAL_SEC;
         }
 
-        renderer->draw(*scene, *game);
+        renderer->draw(*scene, *entitySystem, *debugConfig);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -95,33 +101,75 @@ int main() {
     return 0;
 }
 
-void processKeyboardInput(GLFWwindow *window) {
+void processKeyboardInput(GLFWwindow *window, Input& input) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-        game->changeScene(new StackingExample());
-
-    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-        game->changeScene(new Thumbler());
-
-    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS)
-        game->changeScene(new SliderExample());
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_RELEASE) {
+        input.setKeyState(GLFW_KEY_D, InputAction::RELEASE);
+    }
+    else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+        input.setKeyState(GLFW_KEY_D, InputAction::PRESS);
+    }
+    if (input.pressed(GLFW_KEY_D)) {
+        debugConfig->showContactPoints = !debugConfig->showContactPoints;
+        debugConfig->showDynamicTreeGrid = !debugConfig->showDynamicTreeGrid;
 }
 
-void processMouseInput(GLFWwindow *window, MouseInput &input) {
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_RELEASE) {
+        input.setKeyState(GLFW_KEY_W, InputAction::RELEASE);
+    }
+    else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+        input.setKeyState(GLFW_KEY_W, InputAction::PRESS);
+    }
+    if (input.pressed(GLFW_KEY_W)) {
+        debugConfig->showWiredEntities = !debugConfig->showWiredEntities;
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_1) == GLFW_RELEASE) {
+        input.setKeyState(GLFW_KEY_1, InputAction::RELEASE);
+    }
+    else if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS) {
+        input.setKeyState(GLFW_KEY_1, InputAction::PRESS);
+    }
+    if (input.pressed(GLFW_KEY_1)) {
+        game->changeScene(new StackingExample(entitySystem));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_2) == GLFW_RELEASE) {
+        input.setKeyState(GLFW_KEY_2, InputAction::RELEASE);
+    }
+    else if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS) {
+        input.setKeyState(GLFW_KEY_2, InputAction::PRESS);
+    }
+    if (input.pressed(GLFW_KEY_2)) {
+        game->changeScene(new Thumbler(entitySystem, leaf));
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_3) == GLFW_RELEASE) {
+        input.setKeyState(GLFW_KEY_3, InputAction::RELEASE);
+    }
+    else if (glfwGetKey(window, GLFW_KEY_3) == GLFW_PRESS) {
+        input.setKeyState(GLFW_KEY_3, InputAction::PRESS);
+    }
+    if (input.pressed(GLFW_KEY_3)) {
+        game->changeScene(new SliderExample(entitySystem));
+    }
+}
+
+void processMouseInput(GLFWwindow *window, Input &input) {
     int leftMouse = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     int rightMouse = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
 
     if (leftMouse == GLFW_RELEASE)
-        input.setState(MouseButton::LEFT, MouseAction::RELEASE);
+        input.setMouseState(MouseButton::LEFT, InputAction::RELEASE);
     else if (leftMouse == GLFW_PRESS)
-        input.setState(MouseButton::LEFT, MouseAction::PRESS);
+        input.setMouseState(MouseButton::LEFT, InputAction::PRESS);
 
     if (rightMouse == GLFW_RELEASE)
-        input.setState(MouseButton::RIGHT, MouseAction::RELEASE);
+        input.setMouseState(MouseButton::RIGHT, InputAction::RELEASE);
     else if (rightMouse == GLFW_PRESS)
-        input.setState(MouseButton::RIGHT, MouseAction::PRESS);
+        input.setMouseState(MouseButton::RIGHT, InputAction::PRESS);
 
     f64 x, y;
     glfwGetCursorPos(window, &x, &y);

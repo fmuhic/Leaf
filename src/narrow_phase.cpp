@@ -1,7 +1,5 @@
-#include "geometry.h"
+#include "narrow_phase.h"
 #include "body.h"
-#include "dynamic_tree.h"
-#include "helpers.h"
 #include "leaf_math.h"
 
 #define BODY_A_ID 0
@@ -12,120 +10,33 @@ using std::vector;
 using std::fabs;
 using glm::vec3;
 
-Geometry::Geometry(DynamicTree* dynamicTree, i32 maxEntityCount) {
-    candidates.reserve(maxEntityCount);
-    tree = dynamicTree;
-}
+void NarrowPhase::checkPairwiseCollision(
+    std::vector<RigidBody>& bodies,
+    std::map<CollisionKey, Collision>& collisions
+) {
+    for (auto &[pair, oldCollision]: collisions) {
+        RigidBody &a = bodies.at(pair.first);
+        RigidBody &b = bodies.at(pair.second);
 
-void Geometry::reset() {
-    candidates.clear();
-    collisions.clear();
-}
-
-// No longer used
-void Geometry::broadPhase(vector<Entity>& entities) {
-    candidates.clear();
-    std::vector<i32> temp;
-
-    // Todo(Fudo): Switch to spatial partitioning
-    for (i32 i = 0; i < (i32) entities.size() - 1; ++i) {
-        Entity &a = entities.at(i);
-        if (!a.isAlive) continue;
-
-        temp.clear();
-        tree->checkIntersections(a.body.aabb, temp);
-        for (i32 bId: temp) {
-            if (bId > i)
-                candidates.push_back(CollisionKey(i, bId));
+        Collision collision;
+        if (a.type == GeometryType::BOX && b.type == GeometryType::BOX) {
+            collision = checkPlygonPolygon(a, b);
         }
-
-        // for (ui32 j = i + 1; j < entities.size(); ++j) {
-        //     Entity &b = entities.at(j);
-        //
-        //     if (a.body.inverseMass == 0.0f && b.body.inverseMass == 0.0f)
-        //         continue;
-        //
-        //     if (!b.isAlive || !a.isAlive || !aabbIntersect(a.body.aabb, b.body.aabb)) {
-        //         collisions.erase(CollisionKey(i, j));
-        //         continue;
-        //     }
-        //
-        //     candidates.push_back(CollisionKey(i, j));
-        // }
-    }
-}
-
-void Geometry::narrowPhase(std::vector<Entity>& entities, std::map<CollisionKey, Collision>& candidatesPool) {
-    for (auto &[key, oldCollision]: candidatesPool) {
-        Entity &a = entities.at(key.first);
-        Entity &b = entities.at(key.second);
-
-        Collision c;
-        if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
-            c = checkPlygonPolygon(a.body, b.body);
         else
             assert(false && "Circles not implemented for now");
 
-        if (c.colided) {
-            findContactPoints(a.body, b.body, c);
-            oldCollision.mergeContacts(c);
+        if (collision.colided) {
+            findContactPoints(a, b, collision);
+            oldCollision.mergeContacts(collision);
         }
         else {
             oldCollision = Collision();
         }
-        // if (c.colided) { 
-        //     c.entities = candidate;
-        //     findContactPoints(a.body, b.body, c);
-        //
-        //     auto iter = collisions.find(candidate);
-        //     if (iter == collisions.end())
-        //         collisions.insert(CollisionPair(candidate, c));
-        //     else
-        //         iter->second.mergeContacts(c);
-        // }
-        // else
-        //     collisions.erase(candidate);
     }
-    // for (auto &candidate: candidates) {
-    //     Entity &a = entities.at(candidate.first);
-    //     Entity &b = entities.at(candidate.second);
-    //
-    //     Collision c;
-    //     if (a.body.type == BodyType::RECTANGLE && b.body.type == BodyType::RECTANGLE)
-    //         c = checkPlygonPolygon(a.body, b.body);
-    //     else
-    //         assert(false && "Circles not implemented for now");
-    //
-    //     if (c.colided) { 
-    //         c.entities = candidate;
-    //         findContactPoints(a.body, b.body, c);
-    //
-    //         auto iter = collisions.find(candidate);
-    //         if (iter == collisions.end())
-    //             collisions.insert(CollisionPair(candidate, c));
-    //         else
-    //             iter->second.mergeContacts(c);
-    //     }
-    //     else
-    //         collisions.erase(candidate);
-    // }
-}
-
-bool Geometry::aabbIntersect(AABB& a, AABB& b) {
-    if (
-        a.topRight.x < b.bottomLeft.x ||
-        a.bottomLeft.x > b.topRight.x ||
-        a.topRight.y < b.bottomLeft.y ||
-        a.bottomLeft.y > b.topRight.y
-    ) {
-        return false;
-    }
-
-    return true;
 }
 
 // Todo(Fudo): Optimize for rectangle to check only 2 axis per body  
-Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
+Collision NarrowPhase::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
     Collision c{};
     f32 minDepth = FLT_MAX;
 
@@ -175,7 +86,7 @@ Collision Geometry::checkPlygonPolygon(RigidBody &a, RigidBody &b) {
     return c;
 }
 
-void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collision) {
+void NarrowPhase::findContactPoints(RigidBody& a, RigidBody& b, Collision& collision) {
     Edge aEdge = findContactEdge(a.vertices, a.vertexCount, collision.normal);
     Edge bEdge = findContactEdge(b.vertices, b.vertexCount, -collision.normal);
 
@@ -221,7 +132,7 @@ void Geometry::findContactPoints(RigidBody& a, RigidBody& b, Collision& collisio
     }
 }
 
-EdgePoints Geometry::clipEdge(
+EdgePoints NarrowPhase::clipEdge(
     glm::vec3& p1,
     glm::vec3& p2,
     glm::vec3 referenceEdge,
@@ -247,7 +158,7 @@ EdgePoints Geometry::clipEdge(
     return ep;
 }
 
-Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal) {
+Edge NarrowPhase::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal) {
     assert(count > 0 && "Minimum vertex count should be 1");
     f32 maxProjection = -FLT_MAX;
     i32 index = -1;
@@ -272,35 +183,4 @@ Edge Geometry::findContactEdge(glm::vec3* vertices, i32 count, glm::vec3 normal)
         return Edge { EdgeId(v0Index, index), v, v0, v };
     else
         return Edge { EdgeId(index, v1Index), v, v, v1 };
-}
-
-void Collision::mergeContacts(Collision& c) {
-    normal = c.normal;
-    for (i32 i = 0; i < c.contactCount; i++) {
-        Contact &newContact = c.contacts[i];
-
-        for (i32 j = 0; j < contactCount; j++) {
-        Contact &oldContact = contacts[j];
-            if (newContact.id == oldContact.id) {
-                newContact.accNormalImpulse = oldContact.accNormalImpulse;
-                newContact.accTangentImpulse = oldContact.accTangentImpulse;
-                newContact.lifeDuration = ++oldContact.lifeDuration;
-                break;
-            }
-        }
-    }
-
-    contactCount = c.contactCount;
-    colided = c.colided;
-    for (i32 i = 0; i < contactCount; i++)
-        contacts[i] = c.contacts[i];
-}
-
-void Collision::addContactPoint(Contact c) {
-    contacts[contactCount] = c;
-    contactCount++;
-};
-
-bool Contact::isStable() {
-    return lifeDuration > STABLE_CONTACT_MIN_FRAMES;
 }

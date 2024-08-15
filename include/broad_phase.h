@@ -1,11 +1,11 @@
 #pragma once
 
-#include "dynamic_tree.h"
 #include <vector>
+#include "dynamic_tree.h"
 
 class BroadPhase {
     public:
-    BroadPhase(DynamicTree* dynamicTree);
+    BroadPhase();
     ~BroadPhase();
 
     i32 createBox(const AABB& box, i32 bodyId);
@@ -17,8 +17,8 @@ class BroadPhase {
     void debugTree(std::vector<std::pair<AABB, i32>>& boxes);
 
     private:
+
     DynamicTree *tree;
-    // Replace with set, for better deduplication
-    std::vector<i32> moves;
+    std::vector<i32> treeMoves;
 };
 

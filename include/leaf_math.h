@@ -12,6 +12,8 @@ glm::vec3 cross(glm::vec3 &v, f32 a);
 glm::vec3 cross(f32 a, glm::vec3 &v);
 bool closeTo(f32 a, f32 b, f32 delta);
 bool closeTo(glm::vec3 &a, glm::vec3 &b, f32 delta);
+f32 min(i32 a, i32 b);
+f32 max(i32 a, i32 b);
 f32 min(f32 a, f32 b);
 f32 max(f32 a, f32 b);
 f32 clamp(f32 val, f32 low, f32 high);

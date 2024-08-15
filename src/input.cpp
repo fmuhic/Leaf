@@ -1,11 +1,21 @@
 #include "input.h"
 
-void MouseInput::setState(MouseButton button, MouseAction action) {
-    input[button].previous = input[button].current;
-    input[button].current = action;
+void Input::setMouseState(MouseButton button, InputAction action) {
+    mouseInput[button].previous = mouseInput[button].current;
+    mouseInput[button].current = action;
 }
 
-bool MouseInput::clicked(MouseButton button) {
-    return input[button].previous == MouseAction::PRESS &&
-        input[button].current == MouseAction::RELEASE;
+bool Input::clicked(MouseButton button) {
+    return mouseInput[button].previous == InputAction::PRESS &&
+        mouseInput[button].current == InputAction::RELEASE;
+}
+
+void Input::setKeyState(i32 key, InputAction action) {
+    keyboardInput[key].previous = keyboardInput[key].current;
+    keyboardInput[key].current = action;
+}
+
+bool Input::pressed(i32 key) {
+    return keyboardInput[key].previous == InputAction::PRESS &&
+        keyboardInput[key].current == InputAction::RELEASE;
 }

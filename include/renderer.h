@@ -1,8 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include "config.h"
+#include "entity_system.h"
 #include "types.h"
-#include "game.h"
 
 struct Scene {
     glm::mat4 camera;
@@ -30,7 +31,7 @@ struct Renderer {
     Renderer(f32 width, f32 height);
     ~Renderer();
 
-    void draw(Scene &scene, Game &game);
+    void draw(Scene &scene, EntitySystem &EntitySystem, DebugConfig &config);
 
     VideoEntity quad;
     VideoEntity wiredQuad;
@@ -47,6 +48,9 @@ struct Renderer {
     void createWiredRectangleEntity(ui32 program);
     void createCircleEntity(ui32 program, f32 radius, i32 pointCount);
     glm::vec3 pickContactColor(i32 contactLifeDuration);
+
+    void debugDrawContactPoints(EntitySystem& entitySystem, Scene& scene);
+    void debugDrawDynamicTree(EntitySystem& entitySystem, Scene& scene);
 
     glm::vec3 green = glm::vec3(0.1569f, 0.7059f, 0.3882f);
     glm::vec3 yellow = glm::vec3(0.9451f, 0.7686f, 0.0588f);

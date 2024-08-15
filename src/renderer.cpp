@@ -9,8 +9,9 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "body.h"
+#include "config.h"
 #include "const.h"
-#include "helpers.h"
+#include "entity_system.h"
 #include "renderer.h"
 #include "loader.h"
 
@@ -244,7 +245,7 @@ void Renderer::drawEntity(f32 program, VideoEntity &e, Scene &scene, glm::mat4 &
     glDrawElements(GL_TRIANGLES, e.indiceCount, GL_UNSIGNED_INT, 0);
 }
 
-void Renderer::draw(Scene &scene, Game &game) {
+void Renderer::draw(Scene& scene, EntitySystem& entitySystem, DebugConfig& config) {
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -259,56 +260,44 @@ void Renderer::draw(Scene &scene, Game &game) {
         glm::vec3(0.0f, 1.0f, 0.0f)
     );
 
-    ui32 shaderProgram = quad.shaderProgram;
-    glUseProgram(quad.shaderProgram);
-
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
-    glBindVertexArray(quad.vao);
-    for (auto &e: game.entities) {
-        if (e.isAlive && e.body.type == BodyType::RECTANGLE) {
-            drawEntity(shaderProgram, quad, scene, e.body.model, e.color);
+    if (config.showWiredEntities) {
+        glBindVertexArray(wiredQuad.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, wiredQuad.vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
+        ui32 shaderProgram = wiredQuad.shaderProgram;
+        glUseProgram(wiredQuad.shaderProgram);
+
+        for (auto &e: entitySystem.entities) {
+            if (!e.isAlive) continue;
+
+            RigidBody& b = entitySystem.leaf->bodies[e.bodyId];
+            drawWiredEntity(shaderProgram, wiredQuad, scene, b.model, e.color);
+        }
+    } else {
+        glBindVertexArray(quad.vao);
+        glBindBuffer(GL_ARRAY_BUFFER, quad.vbo);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
+        ui32 shaderProgram = quad.shaderProgram;
+        glUseProgram(quad.shaderProgram);
+
+        for (auto &e: entitySystem.entities) {
+            if (!e.isAlive) continue;
+
+            RigidBody& b = entitySystem.leaf->bodies[e.bodyId];
+            drawEntity(shaderProgram, quad, scene, b.model, e.color);
         }
     }
 
-    for (auto& [_, c]: game.candidatesPool) {
-        if (!c.colided) continue;
-        for (i32 i = 0; i < c.contactCount; i++) {
-            if(c.contacts[i].isStable())
-                continue;
-
-            glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, c.contacts[i].point);
-            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
-            drawEntity(shaderProgram, quad, scene, model, contactColor);
-        }
+    
+    if (config.showContactPoints) {
+        debugDrawContactPoints(entitySystem, scene);
     }
-
-    glBindVertexArray(wiredQuad.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, wiredQuad.vbo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
-    std::vector<std::pair<AABB, i32>> boxes;
-    game.debugTree(boxes);
-    std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
-        return a.second > b.second;
-    });
-    for (auto &[box, height]: boxes) {
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::vec3 p = box.bottomLeft + (box.topRight - box.bottomLeft) * 0.5f;
-        model = glm::translate(model, p);
-        model = glm::scale(
-            model,
-            glm::vec3(
-                box.topRight.x - box.bottomLeft.x,
-                box.topRight.y - box.bottomLeft.y,
-                1.0f
-            )
-        );
-        drawWiredEntity(shaderProgram, wiredQuad, scene, model, COLORS[height % COLORS.size()]);
+    if (config.showDynamicTreeGrid) {
+        debugDrawDynamicTree(entitySystem, scene);
     }
 
 
@@ -330,6 +319,57 @@ void Renderer::draw(Scene &scene, Game &game) {
     //     if (e.isAlive && e.type == EntityType::RECTANGLE) 
     //         drawEntity(shaderProgram, &r->quad, scene, &e.model, &e.color);
     // }
+}
+
+void Renderer::debugDrawContactPoints(EntitySystem& entitySystem, Scene& scene) {
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, quad.ebo);
+    glBindVertexArray(quad.vao);
+
+    for (auto& [_, c]: entitySystem.leaf->collisions) {
+        if (!c.colided) continue;
+        for (i32 i = 0; i < c.contactCount; i++) {
+            glm::vec3 contactColor = pickContactColor(c.contacts[i].lifeDuration);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, c.contacts[i].point);
+            model = glm::scale(model, glm::vec3(0.1f, 0.1f, 1.0f));
+            drawEntity(quad.shaderProgram, quad, scene, model, contactColor);
+        }
+    }
+}
+
+void Renderer::debugDrawDynamicTree(EntitySystem& entitySystem, Scene& scene) {
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    glBindVertexArray(wiredQuad.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, wiredQuad.vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, wiredQuad.ebo);
+
+    std::vector<std::pair<AABB, i32>> boxes;
+    entitySystem.leaf->debugTree(boxes);
+    std::sort(boxes.begin(), boxes.end(), [](auto &a, auto &b) {
+        return a.second > b.second;
+    });
+
+    for (auto &[box, height]: boxes) {
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec3 p = box.bottomLeft + (box.topRight - box.bottomLeft) * 0.5f;
+        model = glm::translate(model, p);
+        model = glm::scale(
+            model,
+            glm::vec3(
+                box.topRight.x - box.bottomLeft.x,
+                box.topRight.y - box.bottomLeft.y,
+                1.0f
+            )
+        );
+        drawWiredEntity(wiredQuad.shaderProgram, wiredQuad, scene, model, COLORS[height % COLORS.size()]);
+    }
 }
 
 glm::vec3 Renderer::pickContactColor(i32 contactLifeDuration) {

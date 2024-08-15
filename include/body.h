@@ -1,38 +1,34 @@
 #pragma once
 
 #include <glm/ext/matrix_transform.hpp>
-
 #include "types.h"
+#include "aabb.h"
 
 #define MAX_VERTEX_COUNT 4
 
-struct AABB {
-    AABB() {};
-    AABB(glm::vec3 bottom, glm::vec3 top): bottomLeft(bottom), topRight(top) {}
-
-    AABB fatten(const f32 amount) const;
-    AABB merge(const AABB& other) const;
-    bool contains(AABB& other) const;
-    bool overlaps(AABB& other) const;
-    f32 perimiter() const;
-
-    glm::vec3 bottomLeft;
-    glm::vec3 topRight;
+enum struct GeometryType: ui32 {
+    BOX,
+    CIRCLE
 };
 
-enum struct BodyType: ui32 {
-    RECTANGLE,
-    CIRCLE
+struct BodyConfig {
+    glm::vec3 position = glm::vec3();
+    glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
+    f32 rotation = 0.0f;
+    f32 friction = 0.3f;
+    f32 restitution = 0.5f;
+    bool immovable = false;
 };
 
 struct RigidBody {
     RigidBody();
+    RigidBody(BodyConfig config, GeometryType type);
     RigidBody(
-        BodyType type,
+        GeometryType type,
         glm::vec3 scale,
         bool immovable,
         glm::vec3 initPosition,
-        f32 orientation,
+        f32 rotation,
         f32 staticFriction,
         f32 dynamicFriction,
         f32 restitution
@@ -42,7 +38,7 @@ struct RigidBody {
     void updateVelocity(f32 dt);
     void updatePosition(f32 dt);
 
-    BodyType type ;
+    GeometryType type ;
     AABB aabb;
     glm::vec3 scale;
     glm::mat4 model;
@@ -55,7 +51,7 @@ struct RigidBody {
     glm::vec3 oldPosition;
 
     f32 angularVelocity = 0.0f;
-    f32 orientation = 0.0f;
+    f32 rotation = 0.0f;
 
     f32 mass;
     f32 inverseMass;
@@ -64,6 +60,9 @@ struct RigidBody {
     f32 staticFriction;
     f32 dynamicFriction;
     f32 restitution;
+
+    i32 treeId = -1;
+    bool isAlive = false;
 
     private:
 

@@ -1,6 +1,8 @@
+#include "helpers.h"
+
+#include <iostream>
 #include <random>
 #include <assert.h>
-#include "helpers.h"
 
 ui32 pickRand(ui32 min, ui32 max) {
     std::random_device dev;

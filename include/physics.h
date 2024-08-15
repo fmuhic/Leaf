@@ -1,14 +1,15 @@
 #pragma once
 
 #include <vector>
+#include <map>
+
 
 #include "types.h"
-#include "const.h"
 #include "body.h"
-#include "geometry.h"
+#include "collision.h"
 
 struct Physics {
-    void resolveCollisions(std::map<CollisionKey, Collision>& collisions, std::vector<Entity>& entities, f32 dtInv);
+    void resolveCollisions(std::map<CollisionKey, Collision>& collisions, std::vector<RigidBody>& bodies, f32 dtInv);
 
     private:
 
@@ -16,7 +17,7 @@ struct Physics {
     void applyNormalImpulse(Collision& collision, RigidBody& a, RigidBody& b);
     void applyTangentImpulse(Collision& collision, RigidBody& a, RigidBody& b);
 
-    i32 correctionCount = 15;
+    i32 correctionCount = 12;
     f32 positionCorrectionFactor = 0.2f;
     f32 allowedPenetration = 0.01f;
 };

@@ -1,15 +1,15 @@
 #pragma once
 
-#include <vector>
-#include "entity.h"
+#include "entity_system.h"
 #include "types.h"
 
 struct Example {
+    Example(EntitySystem* es): entitySystem(es) {}
     virtual ~Example() {}
-    virtual void setup(std::vector<Entity>& entities) = 0;
-    virtual void update(std::vector<Entity>& entities, f32 elapsed) = 0;
+    virtual void setup() = 0;
+    virtual void update(f32 elapsed) = 0;
 
     protected:
 
-    Entity* findFreeEntity(std::vector<Entity>& entities);
+    EntitySystem* entitySystem;
 };

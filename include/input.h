@@ -2,7 +2,6 @@
 
 #include <glm/glm.hpp>
 #include <map>
-
 #include "types.h"
 
 enum class MouseButton {
@@ -10,23 +9,27 @@ enum class MouseButton {
     RIGHT
 };
 
-enum class MouseAction {
+enum class InputAction {
     PRESS,
     RELEASE
 };
 
-struct MouseState {
-    MouseAction current = MouseAction::RELEASE;
-    MouseAction previous = MouseAction::RELEASE;
+struct InputState {
+    InputAction current = InputAction::RELEASE;
+    InputAction previous = InputAction::RELEASE;
 };
 
-struct MouseInput {
+struct Input {
     glm::vec3 position;
     
-    void setState(MouseButton button, MouseAction action);
+    void setMouseState(MouseButton button, InputAction action);
     bool clicked(MouseButton button);
+
+    void setKeyState(i32 key, InputAction action);
+    bool pressed(i32 key);
 
     private:
 
-    std::map<MouseButton, MouseState> input;
+    std::map<MouseButton, InputState> mouseInput;
+    std::map<i32, InputState> keyboardInput;
 };

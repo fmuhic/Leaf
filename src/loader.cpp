@@ -2,8 +2,6 @@
 #include <sstream>
 
 #include "loader.h"
-#include "types.h"
-#include "helpers.h"
 
 using std::string;
 using std::ifstream;

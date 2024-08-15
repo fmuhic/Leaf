@@ -1,25 +1,25 @@
 #include "physics.h"
-#include "geometry.h"
+#include "leaf_math.h"
 
 using std::vector;
 
-void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, vector<Entity>& entities, f32 dtInv) {
+void Physics::resolveCollisions(std::map<CollisionKey, Collision>& collisions, vector<RigidBody>& bodies, f32 dtInv) {
     for (auto& [key, c]: collisions) {
         if (!c.colided) continue;
-        Entity &a = entities.at(key.first);
-        Entity &b = entities.at(key.second);
+        RigidBody &a = bodies.at(key.first);
+        RigidBody &b = bodies.at(key.second);
 
-        prepareContacts(c, a.body, b.body, dtInv);
+        prepareContacts(c, a, b, dtInv);
     }
 
     for (i32 i = 0; i < correctionCount; i++) {
         for (auto& [key, c]: collisions) {
             if (!c.colided) continue;
-            Entity &a = entities.at(key.first);
-            Entity &b = entities.at(key.second);
+            RigidBody &a = bodies.at(key.first);
+            RigidBody &b = bodies.at(key.second);
 
-            applyTangentImpulse(c, a.body, b.body);
-            applyNormalImpulse(c, a.body, b.body);
+            applyTangentImpulse(c, a, b);
+            applyNormalImpulse(c, a, b);
         }
     }
 }
