@@ -19,10 +19,10 @@ void Thumbler::setup() {
         glm::vec3(1.0f, 13.0f, 1.0f) 
     );
     f32 offset = 0.05;
-    f32 boxWidth = 0.3f;
+    f32 boxWidth = 0.4f;
     glm::vec3 initPosition = glm::vec3(-3.2f, -3.7f, 0.0f);
-    i32 width = 20;
-    i32 height = 20;
+    i32 width = 14;
+    i32 height = 14;
     for (i32 i = 0; i < width; i++) {
         for (i32 j = 0; j < height; j++) {
             entitySystem->createDynamicBox(
